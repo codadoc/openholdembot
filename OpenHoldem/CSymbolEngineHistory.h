@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #ifndef INC_CSYMBOLENGINEHISTORY_H
 #define INC_CSYMBOLENGINEHISTORY_H
@@ -28,13 +28,14 @@ public:
 public:
 	// Mandatory reset-functions
 	void InitOnStartup();
-	void ResetOnConnection();
-	void ResetOnHandreset();
-	void ResetOnNewRound();
-	void ResetOnMyTurn();
-	void ResetOnHeartbeat();
+	void UpdateOnConnection();
+	void UpdateOnHandreset();
+	void UpdateOnNewRound();
+	void UpdateOnMyTurn();
+	void UpdateOnHeartbeat();
+  void UpdateAfterAutoplayerAction(int autoplayer_action_code);
 public:
-	bool EvaluateSymbol(const char *name, double *result, bool log = false);
+	bool EvaluateSymbol(const CString name, double *result, bool log = false);
   CString SymbolsProvided();
 public:
 	// Public accessors
@@ -60,12 +61,10 @@ public:
 	int didfold(int betround)			{ return _autoplayer_actions[betround][k_autoplayer_function_fold]; }
 	int didalli(int betround)			{ return _autoplayer_actions[betround][k_autoplayer_function_allin]; }
 	int prevaction()			    	{ return _prevaction; }
-public:
-	void RegisterAction(int autoplayer_action_code);
 private:
 	void SetPrevaction(int autoplayer_action_code);
 	void CalculateHistory();
-  double HistorySymbol(const char *sym, const int round);
+  double HistorySymbol(const CString sym, const int round);
 private:
 	int _prevaction;
 private:
@@ -82,6 +81,7 @@ private:
 	int _autoplayer_actions[kNumberOfBetrounds + 1][k_autoplayer_function_fold];
  private:
   // Remebering symbol values of former streets
+  // Index 0 is unused
 	double _hist_sym[k_hist_sym_count][kNumberOfBetrounds+1];
 };
 

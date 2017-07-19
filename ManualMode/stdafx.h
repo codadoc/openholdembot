@@ -1,9 +1,9 @@
 //******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
 //******************************************************************************
 //
@@ -65,8 +65,8 @@
 
 
 // Version
-#define VERSION_NUMBER				4.41
-#define VERSION_TEXT				"4.4.1.0"  // change version number in ManualMode.rc also, when needed
+#define VERSION_NUMBER			11.01
+#define VERSION_TEXT				"11.0.1.0"  // change version number in ManualMode.rc also, when needed
 
 
 

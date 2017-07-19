@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #include "stdafx.h"
 #include "CSymbolEnginePokerAction.h"
@@ -20,7 +20,8 @@
 #include "CSymbolEngineChipAmounts.h"
 #include "CSymbolEngineDealerchair.h"
 #include "CSymbolEnginePositions.h"
-#include "CSymbolEngineRaisersCallers.h"
+#include "CSymbolEngineRaisers.h"
+#include "..\StringFunctionsDLL\string_functions.h"
 
 CSymbolEnginePokerAction *p_symbol_engine_poker_action = NULL;
 
@@ -32,7 +33,7 @@ CSymbolEnginePokerAction::CSymbolEnginePokerAction() {
   assert(p_symbol_engine_chip_amounts != NULL);
   assert(p_symbol_engine_dealerchair != NULL);
   assert(p_symbol_engine_positions != NULL);
-  assert(p_symbol_engine_raisers_callers != NULL);
+  assert(p_symbol_engine_raisers != NULL);
 }
 
 CSymbolEnginePokerAction::~CSymbolEnginePokerAction() {
@@ -41,19 +42,19 @@ CSymbolEnginePokerAction::~CSymbolEnginePokerAction() {
 void CSymbolEnginePokerAction::InitOnStartup() {
 }
 
-void CSymbolEnginePokerAction::ResetOnConnection() {
+void CSymbolEnginePokerAction::UpdateOnConnection() {
 }
 
-void CSymbolEnginePokerAction::ResetOnHandreset() {
+void CSymbolEnginePokerAction::UpdateOnHandreset() {
 }
 
-void CSymbolEnginePokerAction::ResetOnNewRound() {
+void CSymbolEnginePokerAction::UpdateOnNewRound() {
 }
 
-void CSymbolEnginePokerAction::ResetOnMyTurn() {
+void CSymbolEnginePokerAction::UpdateOnMyTurn() {
 }
 
-void CSymbolEnginePokerAction::ResetOnHeartbeat() {
+void CSymbolEnginePokerAction::UpdateOnHeartbeat() {
 }
 
 const int CSymbolEnginePokerAction::PreflopPos() {
@@ -312,9 +313,9 @@ const bool CSymbolEnginePokerAction::AgchairAfter() {
 	{
 		return false;
 	}
-	if (p_symbol_engine_raisers_callers->raischair() >=0 )
+	if (p_symbol_engine_raisers->raischair() >=0 )
 	{
-		return (BetPosition(p_symbol_engine_raisers_callers->raischair()) > p_symbol_engine_positions->betposition());
+		return (BetPosition(p_symbol_engine_raisers->raischair()) > p_symbol_engine_positions->betposition());
 	}
 	else
 	{
@@ -322,7 +323,7 @@ const bool CSymbolEnginePokerAction::AgchairAfter() {
 	}
 }
 
-bool CSymbolEnginePokerAction::EvaluateSymbol(const char *name, double *result, bool log/* = false*/) {
+bool CSymbolEnginePokerAction::EvaluateSymbol(const CString name, double *result, bool log/* = false*/) {
   if (memcmp(name,"ac_", 3) != 0) {
     // Symbol of a different symbol-engine
     return false;
@@ -348,11 +349,11 @@ bool CSymbolEnginePokerAction::EvaluateSymbol(const char *name, double *result, 
     return true;
   }
 	if (memcmp(name,"ac_betpos", 9) == 0)	{
-    *result = BetPosition(name[9]-'0');
+    *result = BetPosition(RightDigitCharacterToNumber(name));
     return true;
   }
 	if (memcmp(name,"ac_dealpos", 10) == 0) {
-    *result = DealPosition(name[10]-'0');
+    *result = DealPosition(RightDigitCharacterToNumber(name));
     return true;
   }
   // Invalid symbol
@@ -363,8 +364,8 @@ bool CSymbolEnginePokerAction::EvaluateSymbol(const char *name, double *result, 
 CString CSymbolEnginePokerAction::SymbolsProvided() {
   CString list_of_symbols = "ac_agchair_after "
     "ac_prefloprais_pos ac_postflop_pos ac_first_into_pot ";
-  list_of_symbols += RangeOfSymbols("ac_betpos%i", k_first_chair, k_last_chair);
-  list_of_symbols += RangeOfSymbols("ac_dealpos%i", k_first_chair, k_last_chair);
+  list_of_symbols += RangeOfSymbols("ac_betpos%i", kFirstChair, kLastChair);
+  list_of_symbols += RangeOfSymbols("ac_dealpos%i", kFirstChair, kLastChair);
   return list_of_symbols;
 }
 

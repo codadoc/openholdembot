@@ -2,21 +2,25 @@
 #include "COHScriptList.h"
 
 #include "CardFunctions.h"
+#include "CFormulaParser.h"
 #include "CParseErrors.h"
 #include "CPreferences.h"
-#include "CScraperAccess.h"
 #include "CSymbolEngineCards.h"
 #include "CSymbolEnginePokerval.h"
 #include "CTableState.h"
 #include "NumericalFunctions.h"
 
 COHScriptList::COHScriptList(
-    CString *new_name, 
-    CString *new_function_text,
-    int absolute_line) {
-  _name = ((new_name != NULL) ? *new_name : "");
-  _function_text = ((new_function_text != NULL) ? *new_function_text : "");
-  _starting_line_of_function = absolute_line;
+    CString new_name,
+    CString new_function_text) : COHScriptObject(new_name, new_function_text, kNoSourceFileForThisCode, kUndefinedZero) {
+  COHScriptList(new_name, new_function_text, kNoSourceFileForThisCode, kUndefinedZero);
+}
+
+COHScriptList::COHScriptList(
+    CString new_name, 
+    CString new_function_text,
+    CString file_path,
+    int absolute_line) : COHScriptObject(new_name, new_function_text, file_path, absolute_line) {
   Clear();
 }
 
@@ -170,6 +174,12 @@ double COHScriptList::Evaluate(bool log /* = false */) {
   return IsOnList(p_symbol_engine_pokerval->rankhiplayer(),
     p_symbol_engine_pokerval->rankloplayer(),
     p_symbol_engine_cards->issuited());
+}
+
+void COHScriptList::Parse() {
+  write_log(preferences.debug_formula() || preferences.debug_parser(),
+    "[CFunction] Parsing %s\n", _name);
+  p_formula_parser->ParseFormula(this);
 }
 
 CString COHScriptList::function_text() {

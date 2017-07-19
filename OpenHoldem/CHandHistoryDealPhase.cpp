@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #include "stdafx.h"
 #include "CHandHistoryDealPhase.h"
@@ -46,20 +46,20 @@ CHandHistoryDealPhase::~CHandHistoryDealPhase() {
 void CHandHistoryDealPhase::InitOnStartup() {
 }
 
-void CHandHistoryDealPhase::ResetOnConnection() {
+void CHandHistoryDealPhase::UpdateOnConnection() {
 }
 
-void CHandHistoryDealPhase::ResetOnHandreset() {
+void CHandHistoryDealPhase::UpdateOnHandreset() {
   _job_done = false;
 }
 
-void CHandHistoryDealPhase::ResetOnNewRound() {
+void CHandHistoryDealPhase::UpdateOnNewRound() {
 }
 
-void CHandHistoryDealPhase::ResetOnMyTurn() {
+void CHandHistoryDealPhase::UpdateOnMyTurn() {
 }
 
-void CHandHistoryDealPhase::ResetOnHeartbeat() {
+void CHandHistoryDealPhase::UpdateOnHeartbeat() {
   if (_job_done) return;
   if (BETROUND > kBetroundPreflop) {
     // Can only happen when we join a table
@@ -79,7 +79,7 @@ void CHandHistoryDealPhase::ResetOnHeartbeat() {
   int last_chair  = p_symbol_engine_dealerchair->dealerchair();
   int first_chair = (last_chair + 1) % p_tablemap->nchairs();
   for (int i=first_chair; i<=last_chair; ++i) {
-    double currentbet = p_symbol_engine_chip_amounts->currentbet(i);
+    double currentbet = p_table_state->Player(i)->_bet.GetValue();
     if (currentbet <= 0) {
       // Not having to post, not posting or not participating at all
       continue;
@@ -120,7 +120,7 @@ void CHandHistoryDealPhase::ResetOnHeartbeat() {
   }
 }
 
-bool CHandHistoryDealPhase::EvaluateSymbol(const char *name, double *result, bool log /* = false */) {
+bool CHandHistoryDealPhase::EvaluateSymbol(const CString name, double *result, bool log /* = false */) {
   // No symbols provided
 	return false;
 }

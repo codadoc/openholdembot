@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #ifndef INC_DEBUG_H
 #define INC_DEBUG_H
@@ -28,18 +28,19 @@ BOOL CreateBMPFile(const char *szFile, HBITMAP hBMP);
 
 void start_log();
 void stop_log();
-void write_log_vl(bool debug_settings_for_this_message, char* fmt, va_list vl);
-void write_log(bool debug_settings_for_this_message, char* fmt, ...);
-void write_log_nostamp(bool debug_settings_for_this_message, char* fmt, ...);
-void write_log_separator(bool debug_settings_for_this_message, char* header_message);
+void clear_log();
+void update_log_filename();
+void write_log_vl(bool debug_settings_for_this_message, const char* fmt, va_list vl);
+void write_log(bool debug_settings_for_this_message, const char* fmt, ...);
+void write_log_nostamp(bool debug_settings_for_this_message, const char* fmt, ...);
+void write_log_separator(bool debug_settings_for_this_message, const char* header_message);
 int GenerateDump(EXCEPTION_POINTERS *pExceptionPointers);
 
 extern CCritSec	log_critsec;  // Used to ensure only one thread at a time writes to log file
 
-
 #undef TRACING_ENABLED
 #ifdef TRACING_ENABLED
-    #define __TRACE write_log(true, "[Trace] %s function %s line %i\n", __FILE__, __FUNCTION__, __LINE__);
+    #define __TRACE  write_log(true, "[Trace] %s function %s line %i\n", __FILE__, __FUNCTION__, __LINE__);
 #else
     #define __TRACE 1; /* empty statement */
 #endif

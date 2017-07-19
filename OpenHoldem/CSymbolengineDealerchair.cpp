@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #include "stdafx.h"
 #include "CSymbolEngineDealerchair.h"
@@ -35,28 +35,28 @@ CSymbolEngineDealerchair::~CSymbolEngineDealerchair()
 
 void CSymbolEngineDealerchair::InitOnStartup()
 {
-	ResetOnConnection();
+	UpdateOnConnection();
 }
 
-void CSymbolEngineDealerchair::ResetOnConnection()
+void CSymbolEngineDealerchair::UpdateOnConnection()
 {
 	_dealerchair = kUndefined;
 }
 
-void CSymbolEngineDealerchair::ResetOnHandreset()
+void CSymbolEngineDealerchair::UpdateOnHandreset()
 {}
 
-void CSymbolEngineDealerchair::ResetOnNewRound()
+void CSymbolEngineDealerchair::UpdateOnNewRound()
 {}
 
-void CSymbolEngineDealerchair::ResetOnMyTurn()
+void CSymbolEngineDealerchair::UpdateOnMyTurn()
 {}
 
-void CSymbolEngineDealerchair::ResetOnHeartbeat() {
+void CSymbolEngineDealerchair::UpdateOnHeartbeat() {
 	write_log(preferences.debug_symbolengine(), "nchairs: %d\n", 
 		p_tablemap->nchairs());
 	for (int i=0; i<p_tablemap->nchairs(); i++)	{
-		if (p_table_state->_players[i]._dealer)	{
+		if (p_table_state->Player(i)->dealer())	{
 			write_log(preferences.debug_symbolengine(), "Setting dealerchair to %d\n", i);
 			_dealerchair = i;					
 			break;
@@ -67,18 +67,23 @@ void CSymbolEngineDealerchair::ResetOnHeartbeat() {
 	// Do not reset, as this might cause a hand-reset.
 }
 
-bool CSymbolEngineDealerchair::EvaluateSymbol(const char *name, double *result, bool log /* = false */)
+bool CSymbolEngineDealerchair::EvaluateSymbol(const CString name, double *result, bool log /* = false */)
 {
   FAST_EXIT_ON_OPENPPL_SYMBOLS(name);
-	if (memcmp(name, "dealerchair", 11)==0 && strlen(name)==11)	
+	if (name == "dealerchair")	
 	{
 		*result = p_symbol_engine_dealerchair->dealerchair();
 		return true;
 	}
+  if (name == "buttonchair")
+  {
+    *result = p_symbol_engine_dealerchair->dealerchair();
+    return true;
+  }
 	return false;
 }
 
 CString CSymbolEngineDealerchair::SymbolsProvided() {
-  return "dealerchair ";
+  return "dealerchair buttonchair ";
 }
 	

@@ -1,0 +1,23 @@
+LIBRARY	window_functions
+EXPORTS
+CalculateTotalHeightForClientHeight
+CalculateTotalWidthForClientWidth
+CascadeSingleWindow
+GetWindowSize
+MinimizeWindow
+MoveWindow
+MoveWindowToTopLeft
+ResizeToClientSize
+ResizeToTotalSize
+TileSingleWindow
+WinBelongsToExecutable 
+WinGetTitle
+WinIsBring
+WinIsDesktop
+WinIsMaximized
+WinIsMinimized
+WinIsOutOfScreen
+WinIsTaskbar
+WinIsProgramManager
+WinIsTaskManager
+WinIsZeroSized

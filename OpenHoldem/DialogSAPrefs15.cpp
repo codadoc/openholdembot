@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 // CDlgSAPrefs15.cpp : implementation file
 //
@@ -29,7 +29,6 @@ IMPLEMENT_DYNAMIC(CDlgSAPrefs15, CDialog)
 CDlgSAPrefs15::CDlgSAPrefs15(CWnd* pParent /*=NULL*/)
 	: CSAPrefsSubDlg(CDlgSAPrefs15::IDD, pParent)
 {
-
 }
 
 CDlgSAPrefs15::~CDlgSAPrefs15()
@@ -63,8 +62,8 @@ BOOL CDlgSAPrefs15::OnInitDialog()
 
 void CDlgSAPrefs15::OnOK()
 {
-	preferences.SetValue(k_prefs_gui_start_minimized, _gui_start_minimized_Button.GetCheck() == true);
-	preferences.SetValue(k_prefs_disable_msgbox, m_disable_msgbox.GetCheck()==BST_CHECKED ? true : false);
+	preferences.SetValue(k_prefs_gui_start_minimized, _gui_start_minimized_Button.GetCheck() == BST_CHECKED ? true : false);
+	preferences.SetValue(k_prefs_disable_msgbox, m_disable_msgbox.GetCheck() == BST_CHECKED ? true : false);
 
 	CSAPrefsSubDlg::OnOK();
 }

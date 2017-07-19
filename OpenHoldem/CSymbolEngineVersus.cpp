@@ -1,15 +1,16 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
-// Purpose:
+// Purpose: versus-symbols, winning probability against hand-lists.
+//   HoldEm only, not Omaha.
 //
-//*******************************************************************************
+//******************************************************************************
 
 #include "stdafx.h"
 #include "CSymbolEngineVersus.h"
@@ -23,7 +24,6 @@
 #include "CFunctionCollection.h"
 #include "CPreferences.h"
 #include "CScraper.h"
-#include "CScraperAccess.h"
 #include "CSymbolEngineUserchair.h"
 #include "CTableState.h"
 #include "OH_MessageBox.h"
@@ -53,19 +53,19 @@ CSymbolEngineVersus::~CSymbolEngineVersus() {
 void CSymbolEngineVersus::InitOnStartup() {
 }
 
-void CSymbolEngineVersus::ResetOnConnection() {
+void CSymbolEngineVersus::UpdateOnConnection() {
 }
 
-void CSymbolEngineVersus::ResetOnHandreset() {
+void CSymbolEngineVersus::UpdateOnHandreset() {
 }
 
-void CSymbolEngineVersus::ResetOnNewRound() {
+void CSymbolEngineVersus::UpdateOnNewRound() {
 }
 
-void CSymbolEngineVersus::ResetOnMyTurn() {
+void CSymbolEngineVersus::UpdateOnMyTurn() {
 }
 
-void CSymbolEngineVersus::ResetOnHeartbeat() {
+void CSymbolEngineVersus::UpdateOnHeartbeat() {
   GetCounts();
 }
 
@@ -126,13 +126,11 @@ bool CSymbolEngineVersus::GetCounts() {
 	int				listnum = 0;
 	
 	int betround = p_betround_calculator->betround();
-	int sym_userchair = p_symbol_engine_userchair->userchair();
-
-	for (int i=0; i<kNumberOfCardsPerPlayer; i++) {
-    card_player[i] = p_table_state->_players[sym_userchair]._hole_cards[i].GetValue();
+	for (int i=0; i<kNumberOfCardsPerPlayerHoldEm; i++) {
+    card_player[i] = p_table_state->User()->hole_cards(i)->GetValue();
   }
 	for (int i=0; i<kNumberOfCommunityCards; i++) {
-    card_common[i] = p_table_state->_common_cards[i].GetValue();
+    card_common[i] = p_table_state->CommonCards(i)->GetValue();
   }
   // Get the lock
 	CSLock lock(m_critsec);
@@ -510,7 +508,7 @@ bool CSymbolEngineVersus::EvaluateVersusMultiplexSymbol(const char *name, double
   return EvaluateVersusHandListSymbol(vs_list, result, log);
 }
 
-bool CSymbolEngineVersus::EvaluateSymbol(const char *name, double *result, bool log /* = false */) {
+bool CSymbolEngineVersus::EvaluateSymbol(const CString name, double *result, bool log /* = false */) {
   FAST_EXIT_ON_OPENPPL_SYMBOLS(name);
   if (memcmp(name, "vs$", 3) != 0) {
     // Not a versus symbol

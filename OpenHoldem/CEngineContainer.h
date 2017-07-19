@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #ifndef INC_CENGINECONTAINER_H
 #define INC_CENGINECONTAINER_H
@@ -24,11 +24,13 @@ class CEngineContainer {
   ~CEngineContainer();
  public:
   // both to be called by the auto-connector
-  void ResetOnConnection();
-  void ResetOnDisconnection();
+  void UpdateOnConnection();
+  void UpdateOnDisconnection();
+  // To be called by the autoplayer
+  void UpdateAfterAutoplayerAction(int autoplayer_action_code);
  public:
   void EvaluateAll();
-  bool EvaluateSymbol(const char *name, double *result, bool log = false);
+  bool EvaluateSymbol(const CString name, double *result, bool log = false);
   CString SymbolsProvided()       { BuildListOfSymbolsProvided(); return _list_of_symbols; }
  private:
   void BuildListOfSymbolsProvided();
@@ -39,10 +41,11 @@ class CEngineContainer {
   void DestroyAllSymbolEngines();
   void DestroyAllSpecialSymbolEngines();
  private:
-  void ResetOnHandreset();
-  void ResetOnNewRound();
-  void ResetOnMyTurn();
-  void ResetOnHeartbeat();
+  void InitOnStartup();
+  void UpdateOnHandreset();
+  void UpdateOnNewRound();
+  void UpdateOnMyTurn();
+  void UpdateOnHeartbeat();
  private:
   CVirtualSymbolEngine *_symbol_engines[k_max_number_of_symbol_engines]; 
   int _number_of_symbol_engines_loaded;

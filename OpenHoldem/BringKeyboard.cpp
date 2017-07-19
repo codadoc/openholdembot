@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #include "StdAfx.h"
 #include "BringKeyBoard.h"
@@ -50,7 +50,7 @@ void CheckBringKeyboard(void) {
 	mii.fMask = MIIM_STRING;
 	mii.fType = MFT_STRING;
 	mii.dwTypeData = temp;
-	keybd_item_pos = -1;
+	keybd_item_pos = kUndefined;
 	for (int i=GetMenuItemCount(bringsysmenu)-1; i>=0; --i)	{
 		mii.cch = 256;
 	

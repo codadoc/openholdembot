@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 // MainFrm.cpp : implementation of the CMainFrame class
 //
@@ -43,7 +43,9 @@
 #include "DialogSAPrefs3.h"
 #include "DialogSAPrefs4.h"
 #include "DialogSAPrefs6.h"
+#include "DialogSAPrefs7.h"
 #include "DialogSAPrefs8.h"
+#include "DialogSAPrefs9.h"
 #include "DialogSAPrefs10.h"
 #include "DialogSAPrefs11.h"
 #include "DialogSAPrefs12.h"
@@ -64,7 +66,7 @@
 #include "OpenHoldemDoc.h"
 #include "SAPrefsDialog.h"
 #include "Singletons.h"
-#include "StringFunctions.h"
+#include "..\StringFunctionsDLL\string_functions.h"
 
 // CMainFrame
 
@@ -88,6 +90,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_EDIT_PREFERENCES, &CMainFrame::OnEditPreferences)
 	ON_COMMAND(ID_EDIT_VIEWLOG, &CMainFrame::OnEditViewLog)
 	ON_COMMAND(ID_EDIT_TAGLOG, &CMainFrame::OnEditTagLog)
+  ON_COMMAND(ID_EDIT_CLEARLOG, &CMainFrame::OnEditClearLog)
 	ON_COMMAND(ID_VIEW_SCRAPEROUTPUT, &CMainFrame::OnScraperOutput)
 	ON_COMMAND(ID_VIEW_SHOOTREPLAYFRAME, &CMainFrame::OnViewShootreplayframe)
 	ON_COMMAND(ID_DLL_LOAD, &CMainFrame::OnDllLoad)
@@ -139,16 +142,10 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_BN_CLICKED(ID_NUMBER19, &CMainFrame::OnClickedFlags)
 
 	ON_WM_TIMER()
-
-	ON_UPDATE_COMMAND_UI(ID_INDICATOR_STATUS_PLCARDS,OnUpdateStatus)
-	ON_UPDATE_COMMAND_UI(ID_INDICATOR_STATUS_COMCARDS,OnUpdateStatus)
-	ON_UPDATE_COMMAND_UI(ID_INDICATOR_STATUS_POKERHAND,OnUpdateStatus)
+  ON_UPDATE_COMMAND_UI(ID_INDICATOR_STATUS_ACTION, OnUpdateStatus)
 	ON_UPDATE_COMMAND_UI(ID_INDICATOR_STATUS_HANDRANK,OnUpdateStatus)
 	ON_UPDATE_COMMAND_UI(ID_INDICATOR_STATUS_PRWIN,OnUpdateStatus)
-	ON_UPDATE_COMMAND_UI(ID_INDICATOR_STATUS_NOPP,OnUpdateStatus)
-	ON_UPDATE_COMMAND_UI(ID_INDICATOR_STATUS_NIT,OnUpdateStatus)
-	ON_UPDATE_COMMAND_UI(ID_INDICATOR_STATUS_ACTION,OnUpdateStatus)
-
+	
 	ON_WM_SETCURSOR()
 	ON_WM_SYSCOMMAND()
 END_MESSAGE_MAP()
@@ -172,9 +169,11 @@ CMainFrame::~CMainFrame()
 {
 	if (p_flags_toolbar != NULL)
 	{
-		p_flags_toolbar->~CFlagsToolbar();
 		delete(p_flags_toolbar);
 	}
+  if (p_openholdem_statusbar != NULL) {
+    delete p_openholdem_statusbar;
+  }
 }
 
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct) {
@@ -190,6 +189,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct) {
 	SetTimer(ENABLE_BUTTONS_TIMER, 50, 0);
 	// Start timer that updates status bar
 	SetTimer(UPDATE_STATUS_BAR_TIMER, 500, 0);
+  // Start timer that checks for continued existence of attached HWND 		
+  SetTimer(HWND_CHECK_TIMER, 200, 0);
 	return 0;
 }
 
@@ -230,7 +231,7 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 	cs.lpszClass = preferences.window_class_name();
 
 	// Restore window location and size
-  // -32 to avoid placement directlz under the taskbar,
+  // -32 to avoid placement directly under the taskbar,
   // so that at least a little bit is visible
   // if the values in the ini-file are out of range.
 	max_x = GetSystemMetrics(SM_CXSCREEN) - GetSystemMetrics(SM_CXICON - 32);
@@ -285,12 +286,16 @@ void CMainFrame::OnEditViewLog()
 	{
 		return;
 	}
-	ShellExecute(NULL, "open", p_filenames->LogFilename(), NULL, NULL, SW_SHOW);
+	ShellExecute(NULL, "open", p_filenames->LogFilePath(), NULL, NULL, SW_SHOW);
 }
 
 void CMainFrame::OnEditTagLog() {
 	write_log(k_always_log_basic_information,
 		"[*** ATTENTION ***] User tagged this situation for review\n");
+}
+
+void CMainFrame::OnEditClearLog() {
+  clear_log();
 }
 
 // Menu -> Edit -> View Scraper Output
@@ -340,11 +345,11 @@ void CMainFrame::OnManualMode() {
   // No error-checking here~> if it does not work, then we silently fail.
   // http://msdn.microsoft.com/en-us/library/windows/desktop/bb762153%28v=vs.85%29.aspx
   ShellExecute(
-		NULL,               // Pointer to parent window; not needed
-		"open",             // "open" == "execute" for an executable
-		"ManualMode.exe",		// ManualMode to be executed
+    NULL,               // Pointer to parent window; not needed
+    "open",             // "open" == "execute" for an executable
+    p_filenames->ManualModePath(),
 		NULL, 		          // Parameters
-		p_filenames->OpenHoldemDirectory(), // Working directory
+		p_filenames->ToolsDirectory(), // Working directory, location of ManualMode
 		SW_SHOWNORMAL);		  // Active window, default size
 }
 
@@ -358,7 +363,9 @@ void CMainFrame::OnEditPreferences()
 	CDlgSAPrefs3 page3;
 	CDlgSAPrefs4 page4;
 	CDlgSAPrefs6 page6;
+  CDlgSAPrefs7 page7;
 	CDlgSAPrefs8 page8;
+  CDlgSAPrefs9 page9;
 	CDlgSAPrefs10 page10;
 	CDlgSAPrefs11 page11;
 	CDlgSAPrefs12 page12;
@@ -375,6 +382,7 @@ void CMainFrame::OnEditPreferences()
 	// add pages
 	dlg.AddPage(page14, "Auto-Connector");
 	dlg.AddPage(page2,  "Autoplayer");
+  dlg.AddPage(page9, "Auto-starter");
 	dlg.AddPage(page10, "Chat");
 	dlg.AddPage(page17, "Configuration Check");
 	dlg.AddPage(page20, "Debugging");
@@ -391,7 +399,7 @@ void CMainFrame::OnEditPreferences()
 	dlg.AddPage(page21, "Table Positioner");
 	dlg.AddPage(page12, "Validator");	
 
-	// this one will be a child node on the tree
+  // this one will be a child node on the tree
 	// (&page3 specifies the parent)
 	//dlg.AddPage(dlg4, "Page 4", &page3);
 
@@ -414,16 +422,25 @@ void CMainFrame::OnEditPreferences()
 BOOL CMainFrame::DestroyWindow() {
 	p_dll_extension->Unload();
 	StopThreads();
+  PMainframe()->KillTimers();
 	// Save window position
   WINDOWPLACEMENT wp;
 	GetWindowPlacement(&wp); 		
 	preferences.SetValue(k_prefs_main_x, wp.rcNormalPosition.left); 		
  	preferences.SetValue(k_prefs_main_y, wp.rcNormalPosition.top);
-  return CFrameWnd::DestroyWindow();
+  write_log(preferences.debug_gui(), "[GUI] Going to delete the GUI\n");
+  write_log(preferences.debug_gui(), "[GUI] this = [%i]\n", this);
+  // All OK here
+  assert(AfxCheckMemory());
+  // http://www.maxinmontreal.com/forums/viewtopic.php?f=111&t=20459
+  // probably caused by incorrect order of deletion,
+  // caused by incorrect position of StopThreads and KillTimers.
+  bool success = CFrameWnd::DestroyWindow(); 
+  write_log(preferences.debug_gui(), "[GUI] Window deleted\n");
+  return success;
 }
 
-void CMainFrame::OnFileOpen() 
-{
+void CMainFrame::OnFileOpen() {
     COpenHoldemDoc *pDoc = (COpenHoldemDoc *)this->GetActiveDocument();   
    
     if (!pDoc->SaveModified())
@@ -433,7 +450,7 @@ void CMainFrame::OnFileOpen()
 
 	cfd.m_ofn.lpstrInitialDir = preferences.path_ohf();
   // http://msdn.microsoft.com/en-us/library/windows/desktop/ms646839%28v=vs.85%29.aspx
-  cfd.m_ofn.lpstrFilter = "OpenHoldem Formula Files (*.ohf, *.oppl)\0*.ohf;*.oppl\0All files (*.*)\0*.*\0\0";
+  cfd.m_ofn.lpstrFilter = "OpenHoldem Formula Files (*.ohf, *.oppl, *.txt)\0*.ohf;*.oppl;*.txt\0All files (*.*)\0*.*\0\0";
 	cfd.m_ofn.lpstrTitle = "Select Formula file to OPEN";
 	if (cfd.DoModal() == IDOK)
 	{				
@@ -446,35 +463,60 @@ void CMainFrame::OnFileOpen()
 	}
 }
 
-void CMainFrame::OnTimer(UINT nIDEvent) {
-	RECT			att_rect = {0}, wrect = {0};
-
+void CMainFrame::OnTimer(UINT_PTR nIDEvent) {
+  write_log(preferences.debug_timers(), "[GUI] CMainFrame::OnTimer()\n");
+  // There was a race-condition in this function during termination 
+  // if OnTimer was in progress and p_autoconnector became dangling.
+  // This is probably fixed, as we now kill the timers
+  // before we delete singleton, but we keep these safety-meassures.
+  // It is OK to skip CWnd::OnTimer(nIDEvent); if we terminate.
+  if (p_flags_toolbar == NULL) {
+    return;
+  }
+  if (p_openholdem_statusbar == NULL) {
+    return;
+  }
+  if (p_autoconnector == NULL) {
+    return;
+  }
   if (nIDEvent == HWND_CHECK_TIMER) {
- 	  if (!IsWindow(p_autoconnector->attached_hwnd())) { 		
+    write_log(preferences.debug_timers(), "[GUI] OnTimer checking table connection\n");
+    // Important: check is_conected first.
+    // Checking only garbage HWND, then disconnecting
+    // can lead to freezing if it colludes with Connect()
+ 	  if (p_autoconnector->IsConnectedToGoneWindow()) {
  	    // Table disappeared 		
- 	    p_autoplayer->EngageAutoplayer(false); 		
- 	    p_autoconnector->Disconnect(); 		 		
+      write_log(preferences.debug_timers(), "[GUI] OnTimer found disappeared window()\n");
+ 	    p_autoconnector->Disconnect("table disappeared"); 		 		
     }
  	} else if (nIDEvent == ENABLE_BUTTONS_TIMER) {
 		// Autoplayer
 		// Since OH 4.0.5 we support autoplaying immediatelly after connection
 		// without the need to know the userchair to act on secondary formulas.
-		if (p_symbol_engine_userchair != NULL
-			  && p_autoconnector->IsConnected()) 	{
+    write_log(preferences.debug_alltherest(), "[GUI] location Johnny_E\n");
+		if (p_autoconnector->IsConnectedToAnything()) 	{
+      write_log(preferences.debug_timers(), "[GUI] OnTimer enabling buttons\n");
+      write_log(preferences.debug_alltherest(), "[GUI] location Johnny_F\n");
 			p_flags_toolbar->EnableButton(ID_MAIN_TOOLBAR_AUTOPLAYER, true);
+      write_log(preferences.debug_alltherest(), "[GUI] location Johnny_G\n");
+      p_flags_toolbar->EnableButton(ID_MAIN_TOOLBAR_SHOOTFRAME, true);
+      write_log(preferences.debug_alltherest(), "[GUI] location Johnny_L\n");
 		}	else {
+      write_log(preferences.debug_timers(), "[GUI] OnTimer disabling buttons\n");
+      write_log(preferences.debug_alltherest(), "[GUI] location Johnny_H\n");
 			p_flags_toolbar->EnableButton(ID_MAIN_TOOLBAR_AUTOPLAYER, false);
-		}
-
-		// Shoot replay frame
-		if (p_autoconnector->attached_hwnd() != NULL) {
-			p_flags_toolbar->EnableButton(ID_MAIN_TOOLBAR_SHOOTFRAME, true);
-    }	else {
+      write_log(preferences.debug_alltherest(), "[GUI] location Johnny_I\n");
       p_flags_toolbar->EnableButton(ID_MAIN_TOOLBAR_SHOOTFRAME, false);
-    }
+      write_log(preferences.debug_alltherest(), "[GUI] location Johnny_N\n");
+		}
+    write_log(preferences.debug_alltherest(), "[GUI] location Johnny_O\n");
 	}	else if (nIDEvent == UPDATE_STATUS_BAR_TIMER) {
+    write_log(preferences.debug_timers(), "[GUI] OnTimer updating statusbar\n");
+    write_log(preferences.debug_alltherest(), "[GUI] location Johnny_P\n");
 		p_openholdem_statusbar->OnUpdateStatusbar();
+    write_log(preferences.debug_alltherest(), "[GUI] location Johnny_Q\n");
 	}
+  write_log(preferences.debug_alltherest(), "[GUI] location Johnny_R\n");
 	CWnd::OnTimer(nIDEvent); 
 }
 
@@ -558,9 +600,9 @@ void CMainFrame::OnUpdateMenuFileEdit(CCmdUI* pCmdUI) {
 
 void CMainFrame::OnUpdateMenuDllLoad(CCmdUI* pCmdUI) {
 	if (p_dll_extension->IsLoaded()) {
-		pCmdUI->SetText("&Unload\tF4");
+		pCmdUI->SetText("&Unload\tF3");
   } else {
-		pCmdUI->SetText("&Load\tF4");
+		pCmdUI->SetText("&Load\tF3");
   }
 	pCmdUI->Enable(!p_autoplayer->autoplayer_engaged());
 }
@@ -570,23 +612,25 @@ void CMainFrame::OnUpdateDllLoadspecificfile(CCmdUI *pCmdUI) {
 }
 
 void CMainFrame::OnUpdateViewShootreplayframe(CCmdUI *pCmdUI) {
-	pCmdUI->Enable(p_autoconnector->attached_hwnd() != NULL);
+	pCmdUI->Enable(p_autoconnector->IsConnectedToAnything());
 }
 
 void CMainFrame::OnUpdateViewScraperOutput(CCmdUI *pCmdUI) {
-	pCmdUI->Enable(p_autoconnector->attached_hwnd() != NULL);
+	pCmdUI->Enable(p_autoconnector->IsConnectedToAnything());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Other functions
 
-void CMainFrame::StartTimer() { 		
- 	// Start timer that checks for continued existence of attached HWND 		
- 	SetTimer(HWND_CHECK_TIMER, 200, 0); 		
-}
-
-void CMainFrame::KillTimer() { 		
- 	CFrameWnd::KillTimer(HWND_CHECK_TIMER); 		
+void CMainFrame::KillTimers() { 		
+  // It is very important that we kill all timers as early as possible
+  // on termination. otherwise the timer-functions might access
+  // objects loke the auto_connector that already are destructed,
+  // thus causing a memory-access-error.
+  // http://www.maxinmontreal.com/forums/viewtopic.php?f=111&t=20459
+ 	CFrameWnd::KillTimer(HWND_CHECK_TIMER);
+  CFrameWnd::KillTimer(ENABLE_BUTTONS_TIMER);
+  CFrameWnd::KillTimer(UPDATE_STATUS_BAR_TIMER);
 }
 
 void CMainFrame::ResetDisplay()

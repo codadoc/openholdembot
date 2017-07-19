@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #include "stdafx.h"
 #include "CSymbolEngineBlinds.h"
@@ -42,21 +42,21 @@ CSymbolEngineBlinds::~CSymbolEngineBlinds()
 
 void CSymbolEngineBlinds::InitOnStartup()
 {
-	ResetOnConnection();
+	UpdateOnConnection();
 }
 
-void CSymbolEngineBlinds::ResetOnConnection()
+void CSymbolEngineBlinds::UpdateOnConnection()
 {
-	ResetOnHandreset();
+	UpdateOnHandreset();
 }
 
-void CSymbolEngineBlinds::ResetOnHandreset()
+void CSymbolEngineBlinds::UpdateOnHandreset()
 {
 	_playersblindbits = 0;
 	_bblindbits = 0;
 }
 
-void CSymbolEngineBlinds::ResetOnNewRound()
+void CSymbolEngineBlinds::UpdateOnNewRound()
 {}
 
 bool CSymbolEngineBlinds::BlindsAreUnknown()
@@ -66,7 +66,7 @@ bool CSymbolEngineBlinds::BlindsAreUnknown()
 
 }
 
-void CSymbolEngineBlinds::ResetOnMyTurn()
+void CSymbolEngineBlinds::UpdateOnMyTurn()
 {
 	// Only updating when it is my turn (stable frames)
 	// and blinds are unknown
@@ -76,7 +76,7 @@ void CSymbolEngineBlinds::ResetOnMyTurn()
 	}
 }
 
-void CSymbolEngineBlinds::ResetOnHeartbeat()
+void CSymbolEngineBlinds::UpdateOnHeartbeat()
 {}
 
 void CSymbolEngineBlinds::CalculateBlinds()
@@ -95,7 +95,7 @@ void CSymbolEngineBlinds::CalculateBlinds()
 	else
 	{
 		// Is Hero SB or BB ?
-		double my_bet = p_table_state->User()->_bet;
+		double my_bet = p_table_state->User()->_bet.GetValue();
 
 		if (my_bet <= p_symbol_engine_tablelimits->sblind() && my_bet > 0)
 		{
@@ -113,7 +113,7 @@ void CSymbolEngineBlinds::CalculateBlinds()
 		for (int i=DEALER_CHAIR+1; i<DEALER_CHAIR+p_tablemap->nchairs(); i++)
 		{
 			int chair = i%p_tablemap->nchairs();
-			double p_bet = p_table_state->_players[chair]._bet;
+			double p_bet = p_table_state->Player(chair)->_bet.GetValue();
 
 			// search SB
 			if (sbchair == kUndefined && p_bet <= p_symbol_engine_tablelimits->sblind() && p_bet > 0) 
@@ -139,7 +139,7 @@ void CSymbolEngineBlinds::CalculateBlinds()
 			for (int i=DEALER_CHAIR+1; i<DEALER_CHAIR+p_tablemap->nchairs(); i++)
 			{
 				int chair = i%p_tablemap->nchairs();
-				double p_bet = p_table_state->_players[chair]._bet;
+				double p_bet = p_table_state->Player(chair)->_bet.GetValue();
 
 				// 1st caller/raiser after dealer is sb
 				if (p_bet >= p_symbol_engine_tablelimits->bblind() && sbchair == kUndefined && chair != bbchair)
@@ -152,7 +152,7 @@ void CSymbolEngineBlinds::CalculateBlinds()
 	}							
 }
 
-bool CSymbolEngineBlinds::EvaluateSymbol(const char *name, double *result, bool log /* = false */)
+bool CSymbolEngineBlinds::EvaluateSymbol(const CString name, double *result, bool log /* = false */)
 {
   FAST_EXIT_ON_OPENPPL_SYMBOLS(name);
 	if (memcmp(name, "nopponentsblind", 15)==0 && strlen(name)==15)

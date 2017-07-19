@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 // OpenHoldemDoc.cpp : implementation of the COpenHoldemDoc class
 //
@@ -28,7 +28,6 @@
 #include "OpenHoldem.h"
 #include "OpenHoldemDoc.h"
 
-
 // COpenHoldemDoc
 IMPLEMENT_DYNCREATE(COpenHoldemDoc, CDocument)
 
@@ -37,6 +36,7 @@ END_MESSAGE_MAP()
 
 // COpenHoldemDoc construction/destruction
 COpenHoldemDoc::COpenHoldemDoc() {
+	write_log(preferences.debug_openholdem(), "[COpenHoldemDoc] Going to call  p_function_collection->DeleteAll\n");
 	p_function_collection->DeleteAll(false, true);
 }
 
@@ -123,11 +123,13 @@ void COpenHoldemDoc::Serialize(CArchive& ar)
 		}
 		// Read ohf file
     assert(p_formula_parser != NULL);
+		write_log(preferences.debug_openholdem(), "[COpenHoldemDoc::Serialize] Going to call p_formula_parser->ParseFormulaFileWithUserDefinedBotLogic \n");
 		p_formula_parser->ParseFormulaFileWithUserDefinedBotLogic(ar);
 		SetModifiedFlag(false);
 		p_openholdem_title->UpdateTitle();
 
     // Try to (re)load (new) dll
+    write_log(preferences.debug_openholdem(), "[COpenHoldemDoc::Serialize] Going to try (re)load (new)dll \n");
 		p_dll_extension->Load("");
 	}
 }

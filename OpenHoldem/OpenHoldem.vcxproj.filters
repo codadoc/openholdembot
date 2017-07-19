@@ -193,6 +193,9 @@
     <Filter Include="Source Files\HandhistoryGenerator">
       <UniqueIdentifier>{3a6f2946-c39b-42b6-b351-1c126988f61a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Temp">
+      <UniqueIdentifier>{a37fce48-f069-4910-b6e3-7743df529ef9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CFileSystemMonitor.cpp">
@@ -225,6 +228,9 @@
     <ClCompile Include="crc32hash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CScrapedMoney.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="CValidator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -246,10 +252,13 @@
     <ClCompile Include="OpenHoldemDoc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Singletons.cpp">
+    <ClCompile Include="COpenHoldemStarter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="CWatchdog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Singletons.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\winmgr\SizerBar.cpp">
@@ -411,6 +420,9 @@
     <ClCompile Include="CSymbolengineDealerchair.cpp">
       <Filter>Source Files\Symbols\Symbol_Engines</Filter>
     </ClCompile>
+    <ClCompile Include="CSymbolengineDebug.cpp">
+      <Filter>Source Files\Symbols\Symbol_Engines</Filter>
+    </ClCompile>
     <ClCompile Include="CSymbolEngineEventLogging.cpp">
       <Filter>Source Files\Symbols\Symbol_Engines</Filter>
     </ClCompile>
@@ -448,9 +460,6 @@
       <Filter>Source Files\Symbols\Symbol_Engines</Filter>
     </ClCompile>
     <ClCompile Include="CSymbolEnginePrwin.cpp">
-      <Filter>Source Files\Symbols\Symbol_Engines</Filter>
-    </ClCompile>
-    <ClCompile Include="CSymbolEngineRaisersCallers.cpp">
       <Filter>Source Files\Symbols\Symbol_Engines</Filter>
     </ClCompile>
     <ClCompile Include="CSymbolEngineRandom.cpp">
@@ -507,13 +516,13 @@
     <ClCompile Include="CAutoConnector.cpp">
       <Filter>Source Files\AutoConnector</Filter>
     </ClCompile>
-    <ClCompile Include="CAutoConnectorThread.cpp">
-      <Filter>Source Files\AutoConnector</Filter>
-    </ClCompile>
     <ClCompile Include="CTableMapLoader.cpp">
       <Filter>Source Files\AutoConnector</Filter>
     </ClCompile>
     <ClCompile Include="CTablePositioner.cpp">
+      <Filter>Source Files\AutoConnector</Filter>
+    </ClCompile>
+    <ClCompile Include="CTablepointChecker.cpp">
       <Filter>Source Files\AutoConnector</Filter>
     </ClCompile>
     <ClCompile Include="CPokerTrackerLookUp.cpp">
@@ -540,12 +549,6 @@
     <ClCompile Include="CScraper.cpp">
       <Filter>Source Files\Scraper</Filter>
     </ClCompile>
-    <ClCompile Include="CScraperAccess.cpp">
-      <Filter>Source Files\Scraper</Filter>
-    </ClCompile>
-    <ClCompile Include="CScraperPreprocessor.cpp">
-      <Filter>Source Files\Scraper</Filter>
-    </ClCompile>
     <ClCompile Include="CardFunctions.cpp">
       <Filter>Source Files\Various Function Libraries</Filter>
     </ClCompile>
@@ -562,12 +565,6 @@
       <Filter>Source Files\Various Function Libraries</Filter>
     </ClCompile>
     <ClCompile Include="NumericalFunctions.cpp">
-      <Filter>Source Files\Various Function Libraries</Filter>
-    </ClCompile>
-    <ClCompile Include="StringFunctions.cpp">
-      <Filter>Source Files\Various Function Libraries</Filter>
-    </ClCompile>
-    <ClCompile Include="WindowFunctions.cpp">
       <Filter>Source Files\Various Function Libraries</Filter>
     </ClCompile>
     <ClCompile Include="CFormulaFileSplitter.cpp">
@@ -645,9 +642,6 @@
     <ClCompile Include="CPlayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DialogSAPrefs7.cpp">
-      <Filter>Source Files\GUI\Unused_might_be_recycled</Filter>
-    </ClCompile>
     <ClCompile Include="CWhiteInfoBox.cpp">
       <Filter>Source Files\GUI</Filter>
     </ClCompile>
@@ -717,13 +711,7 @@
     <ClCompile Include="CSymbolEngineColourCodes.cpp">
       <Filter>Source Files\Symbols\Symbol_Engines</Filter>
     </ClCompile>
-    <ClCompile Include="DialogSAPrefs9.cpp">
-      <Filter>Source Files\GUI\Unused_might_be_recycled</Filter>
-    </ClCompile>
     <ClCompile Include="SLimitInfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CScrapedActionInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WebSafeColours.cpp">
@@ -734,6 +722,84 @@
     </ClCompile>
     <ClCompile Include="CSymbolengineIsRush.cpp">
       <Filter>Source Files\Symbols\Symbol_Engines</Filter>
+    </ClCompile>
+    <ClCompile Include="CSymbolEngineCallers.cpp">
+      <Filter>Source Files\Symbols\Symbol_Engines</Filter>
+    </ClCompile>
+    <ClCompile Include="CSymbolEngineChecksBetsFolds.cpp">
+      <Filter>Source Files\Symbols\Symbol_Engines</Filter>
+    </ClCompile>
+    <ClCompile Include="CSymbolEngineRaisers.cpp">
+      <Filter>Source Files\Symbols\Symbol_Engines</Filter>
+    </ClCompile>
+    <ClCompile Include="CTableTitle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CTitleEvaluator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mtrand.cpp">
+      <Filter>Source Files\PrWin</Filter>
+    </ClCompile>
+    <ClCompile Include="CParseTreeTerminalNode.cpp">
+      <Filter>Source Files\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="CParseTreeTerminalNodeIdentifier.cpp">
+      <Filter>Source Files\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="CParseTreeTerminalNodeNumber.cpp">
+      <Filter>Source Files\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="CParseTreeTerminalNodeFixedAction.cpp">
+      <Filter>Source Files\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="CParseTreeTerminalNodeBetsizeAction.cpp">
+      <Filter>Source Files\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="CParseTreeTerminalNodeUserVariable.cpp">
+      <Filter>Source Files\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="CParseTreeOperatorNode.cpp">
+      <Filter>Source Files\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="CHeartbeatDelay.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CAutoplayerButton.cpp">
+      <Filter>Source Files\AutoPlayer</Filter>
+    </ClCompile>
+    <ClCompile Include="CAllinSlider.cpp">
+      <Filter>Source Files\AutoPlayer</Filter>
+    </ClCompile>
+    <ClCompile Include="CCasinoHotkey.cpp">
+      <Filter>Source Files\AutoPlayer</Filter>
+    </ClCompile>
+    <ClCompile Include="CBetsizeInputBox.cpp">
+      <Filter>Source Files\AutoPlayer</Filter>
+    </ClCompile>
+    <ClCompile Include="DialogSAPrefs7.cpp">
+      <Filter>Source Files\GUI\prefs_dlg</Filter>
+    </ClCompile>
+    <ClCompile Include="DialogSAPrefs9.cpp">
+      <Filter>Source Files\GUI\prefs_dlg</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSymbolengineNutFullHouseOrFourOfAKind.cpp">
+      <Filter>Source Files\Symbols\Symbol_Engines</Filter>
+    </ClCompile>
+    <ClCompile Include="CSymbolEngineMultiplexer.cpp">
+      <Filter>Source Files\Symbols\Symbol_Engines</Filter>
+    </ClCompile>
+    <ClCompile Include="CSymbolengineConstants.cpp">
+      <Filter>Source Files\Symbols\Symbol_Engines</Filter>
+    </ClCompile>
+    <ClCompile Include="CParseTreeTerminalNodeEndOfFunction.cpp">
+      <Filter>Source Files\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="CShankySymbolNameTranslator.cpp">
+      <Filter>Source Files\Parser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -932,6 +998,12 @@
     <None Include="..\Checklist_Release_OpenPPL.txt">
       <Filter>Documents\Checklist for Releases</Filter>
     </None>
+    <None Include="OpenHoldem.def">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\StringFunctionsDLL\string_functions.cpp">
+      <Filter>Temp</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CFileSystemMonitor.h">
@@ -956,6 +1028,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CMyMutex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CScrapedMoney.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="COcclusionCheck.h">
@@ -992,6 +1067,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OpenHoldemDoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="COpenHoldemStarter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CWatchdog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
@@ -1138,6 +1219,9 @@
     <ClInclude Include="CSymbolEngineDealerchair.h">
       <Filter>Header Files\Symbols\Symbol_Engines</Filter>
     </ClInclude>
+    <ClInclude Include="CSymbolEngineDebug.h">
+      <Filter>Header Files\Symbols\Symbol_Engines</Filter>
+    </ClInclude>
     <ClInclude Include="CSymbolEngineEventLogging.h">
       <Filter>Header Files\Symbols\Symbol_Engines</Filter>
     </ClInclude>
@@ -1175,9 +1259,6 @@
       <Filter>Header Files\Symbols\Symbol_Engines</Filter>
     </ClInclude>
     <ClInclude Include="CSymbolEnginePrwin.h">
-      <Filter>Header Files\Symbols\Symbol_Engines</Filter>
-    </ClInclude>
-    <ClInclude Include="CSymbolEngineRaisersCallers.h">
       <Filter>Header Files\Symbols\Symbol_Engines</Filter>
     </ClInclude>
     <ClInclude Include="CSymbolEngineRandom.h">
@@ -1306,9 +1387,6 @@
     <ClInclude Include="CAutoConnector.h">
       <Filter>Header Files\AutoConnector</Filter>
     </ClInclude>
-    <ClInclude Include="CAutoConnectorThread.h">
-      <Filter>Header Files\AutoConnector</Filter>
-    </ClInclude>
     <ClInclude Include="CTableMapLoader.h">
       <Filter>Header Files\AutoConnector</Filter>
     </ClInclude>
@@ -1339,12 +1417,6 @@
     <ClInclude Include="CScraper.h">
       <Filter>Header Files\Scraper</Filter>
     </ClInclude>
-    <ClInclude Include="CScraperAccess.h">
-      <Filter>Header Files\Scraper</Filter>
-    </ClInclude>
-    <ClInclude Include="CScraperPreprocessor.h">
-      <Filter>Header Files\Scraper</Filter>
-    </ClInclude>
     <ClInclude Include="..\CTablemap\CTablemap.h">
       <Filter>Header Files\CTablemap</Filter>
     </ClInclude>
@@ -1373,12 +1445,6 @@
       <Filter>Header Files\Various Function Libraries</Filter>
     </ClInclude>
     <ClInclude Include="NumericalFunctions.h">
-      <Filter>Header Files\Various Function Libraries</Filter>
-    </ClInclude>
-    <ClInclude Include="StringFunctions.h">
-      <Filter>Header Files\Various Function Libraries</Filter>
-    </ClInclude>
-    <ClInclude Include="WindowFunctions.h">
       <Filter>Header Files\Various Function Libraries</Filter>
     </ClInclude>
     <ClInclude Include="CFormulaFileSplitter.h">
@@ -1480,9 +1546,6 @@
     <ClInclude Include="CWhiteInfoBox.h">
       <Filter>Header Files\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="DialogSAPrefs7.h">
-      <Filter>Source Files\GUI\Unused_might_be_recycled</Filter>
-    </ClInclude>
     <ClInclude Include="CSymbolEngineICM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1552,9 +1615,6 @@
     <ClInclude Include="SLimitInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CScrapedActionInterface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CSymbolengineMTTInfo.h">
       <Filter>Header Files\Symbols\Symbol_Engines</Filter>
     </ClInclude>
@@ -1563,6 +1623,81 @@
     </ClInclude>
     <ClInclude Include="CSymbolEngineIsRush.h">
       <Filter>Header Files\Symbols\Symbol_Engines</Filter>
+    </ClInclude>
+    <ClInclude Include="CSymbolEngineCallers.h">
+      <Filter>Header Files\Symbols\Symbol_Engines</Filter>
+    </ClInclude>
+    <ClInclude Include="CSymbolEngineChecksBetsFolds.h">
+      <Filter>Header Files\Symbols\Symbol_Engines</Filter>
+    </ClInclude>
+    <ClInclude Include="CSymbolEngineRaisers.h">
+      <Filter>Header Files\Symbols\Symbol_Engines</Filter>
+    </ClInclude>
+    <ClInclude Include="CTableTitle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CTitleEvaluator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mtrand.h">
+      <Filter>Header Files\PrWin</Filter>
+    </ClInclude>
+    <ClInclude Include="CParseTreeOperatorNode.h">
+      <Filter>Header Files\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="CParseTreeTerminalNode.h">
+      <Filter>Header Files\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="CParseTreeTerminalNodeIdentifier.h">
+      <Filter>Header Files\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="CParseTreeTerminalNodeNumber.h">
+      <Filter>Header Files\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="CParseTreeTerminalNodeuserVariable.h">
+      <Filter>Header Files\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="CParseTreeTerminalNodeFixedAction.h">
+      <Filter>Header Files\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="CParseTreeTerminalNodeBetsizeAction.h">
+      <Filter>Header Files\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="CHeartbeatDelay.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CAutoplayerButton.h">
+      <Filter>Header Files\AutoPlayer</Filter>
+    </ClInclude>
+    <ClInclude Include="CBetsizeInputBox.h">
+      <Filter>Header Files\AutoPlayer</Filter>
+    </ClInclude>
+    <ClInclude Include="CAllinSlider.h">
+      <Filter>Header Files\AutoPlayer</Filter>
+    </ClInclude>
+    <ClInclude Include="CCasinoHotkey.h">
+      <Filter>Header Files\AutoPlayer</Filter>
+    </ClInclude>
+    <ClInclude Include="DialogSAPrefs7.h">
+      <Filter>Header Files\GUI\prefs_dlg</Filter>
+    </ClInclude>
+    <ClInclude Include="CTablepointChecker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CSymbolengineNutFullhouseOrFourOfAKind.h">
+      <Filter>Header Files\Symbols\Symbol_Engines</Filter>
+    </ClInclude>
+    <ClInclude Include="CSymbolengineMultiplexer.h">
+      <Filter>Header Files\Symbols\Symbol_Engines</Filter>
+    </ClInclude>
+    <ClInclude Include="CSymbolengineConstants.h">
+      <Filter>Header Files\Symbols\Symbol_Engines</Filter>
+    </ClInclude>
+    <ClInclude Include="CParseTreeTerminalNodeEndOfFunction.h">
+      <Filter>Header Files\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="CShankySymbolNameTranslator.h">
+      <Filter>Header Files\Parser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

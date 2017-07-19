@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #include "stdafx.h"
 #include "TokenizerConstants.h"
@@ -197,10 +197,8 @@ bool TokenIsUnary(int token) {
 }
 
 bool TokenIsBinary(int token) {
-  assert(token >=0);
+  assert(token >= 0);
   assert(token < kNumberOfTokens);
-
-
   return kTokenIsBinary[token];
 }
 
@@ -223,21 +221,21 @@ CString TokenString(int token) {
 	case kTokenOperatorGreater: return ">";     
 	case kTokenOperatorGreaterOrEqual: return ">=";
 	case kTokenOperatorNotEqual: return "!=";           
-	case kTokenOperatorLogicalAnd: return "&&";        
-	case kTokenOperatorLogicalOr: return "||";	    
-	case kTokenOperatorLogicalNot: return "!";        
-	case kTokenOperatorLogicalXOr: return "^^"; 
-	case kTokenOperatorBinaryAnd: return "&";
-	case kTokenOperatorBinaryOr: return "|";           
-	case kTokenOperatorBinaryNot: return "~";          
-	case kTokenOperatorBinaryXOr: return "^";    
+	case kTokenOperatorLogicalAnd: return "AND";        
+	case kTokenOperatorLogicalOr: return "OR";	    
+	case kTokenOperatorLogicalNot: return "NOT";        
+	case kTokenOperatorLogicalXOr: return "XOR"; 
+	case kTokenOperatorBinaryAnd: return "BitAnd";
+	case kTokenOperatorBinaryOr: return "BitOr";           
+	case kTokenOperatorBinaryNot: return "BitNot";          
+	case kTokenOperatorBinaryXOr: return "BitXOr";    
 	case kTokenOperatorBitShiftLeft: return "<<";      
 	case kTokenOperatorBitShiftRight: return ">>";
-  case kTokenOperatorBitCount: return "`";
+  case kTokenOperatorBitCount: return "BitCount";
 	case kTokenOperatorPercentage: return "percentage"; // because % can also mean modulo      
 	case kTokenOperatorConditionalIf: return "?";     
-	case kTokenOperatorConditionalElse: return "";    
-	case kTokenOperatorConditionalWhen: return ":";
+  case kTokenOperatorConditionalElse: return ":";    
+	case kTokenOperatorConditionalWhen: return "WHEN";
 	case kTokenBracketOpen_1: return "(";              			
 	case kTokenBracketOpen_2: return "[";              
 	case kTokenBracketOpen_3: return "{";              
@@ -255,19 +253,30 @@ CString TokenString(int token) {
   case kTokenActionRaise: return "Raise";
   case kTokenActionRaiseTo: return "RaiseTo";
   case kTokenActionRaiseBy: return "RaiseBy";
+  // case kTokenActionRaiseMin: return "RaiseMin";
+  case kTokenActionRaiseFourthPot: return "RaiseFourthPot";
+  case kTokenActionRaiseThirdPot: return "RaiseThirdPot";
   case kTokenActionRaiseHalfPot: return "RaiseHalfPot";
+  case kTokenActionRaiseTwoThirdPot: return "RaiseTwoThirdPot";
+  case kTokenActionRaiseThreeFourthPot: return "RaiseThreeFourthPot";
   case kTokenActionRaisePot: return "RaisePot";
   case kTokenActionRaiseMax: return "RaiseMax";
   case kTokenActionReturn: return "Return";
+  case kTokenShankyKeywordSitOut: return "SitOut";
   case kTokenActionUserVariableToBeSet: return "Set";
   case kTokenKeywordForce: return "Force";
   case kTokenUnsupportedDelay: return "Delay";
+  case kTokenShankyKeywordHand: return "hand";
+  case kTokenShankyKeywordBoard: return "board";
+  case kTokenShankyKeywordIn: return "in";
   case kTokenActionRaiseByBigBlinds: return "RaiseByBigBlinds";
   case kTokenActionRaiseToBigBlinds: return "RaiseToBigBlinds";
   case kTokenActionRaiseByPercentagedPotsize: return "RaiseByPercentagedPotsize";
 	default:
-		assert(k_this_must_not_happen);
-		return "Error: invalid token ID";
+		assert(kThisMustNotHappen);
+    CString error_message;
+    error_message.Format("Error: unexpected token ID in TokenString(%i)", token);
+		return error_message;
   }
 }
 
@@ -487,7 +496,7 @@ kTokenEndOfFile = 0,
 	kTokenOperatorBinaryXOr,          
 	kTokenOperatorBitShiftLeft,      
 	kTokenOperatorBitShiftRight,     
-    kTokenOperatorBitCount,
+  kTokenOperatorBitCount,
 	kTokenOperatorPercentage,         
 	kTokenOperatorConditionalIf,      
 	kTokenOperatorConditionalThen,    

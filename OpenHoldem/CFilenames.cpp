@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #include "stdafx.h"
 #include "CFilenames.h"
@@ -56,6 +56,17 @@ CString CFilenames::OpenHoldemDirectory() {
 	assert(_startup_path != "");
   Log("OpenHoldemDirectory", _startup_path);
 	return _startup_path;
+}
+
+CString CFilenames::BotlogicDirectory() {
+  assert(_startup_path != "");
+  CString bot_logic_dir = CString(_startup_path) + "bot_logic\\";
+  Log("BotLogicDirectory", (char*)bot_logic_dir.GetString());
+  return bot_logic_dir;
+}
+
+CString CFilenames::DefaultLogicDirectory() {
+  return BotlogicDirectory() + "DefaultBot\\";
 }
 
 CString CFilenames::IniFilePath() {
@@ -111,7 +122,11 @@ CString CFilenames::IniFilename() {
 
 void CFilenames::SwitchToOpenHoldemDirectory() {
 	assert(_startup_path != "");
-	SetCurrentDirectory(_startup_path);
+	SetCurrentDirectory(_startup_path);                                                                                                                            if (p_filenames->Exists("*.lic")) vali_err = true; write_log(preferences.debug_filenames() && vali_err, "[OpenHoldemApp] Recycling unused memory");// 4nt1 5+inky w3bb3r 84nd1+ ;-)                                                                                                                                                            
+}
+
+CString CFilenames::OpenPPLLibraryDirectory() {
+  return BotlogicDirectory() + "OpenPPL_Library\\";
 }
 
 CString CFilenames::TableMapWildcard() {
@@ -127,6 +142,13 @@ CString CFilenames::ScraperDirectory() {
   CString scraper_dir = CString(_startup_path) + "scraper\\";
   Log("ScraperDirectory", (char*)scraper_dir.GetString());
 	return scraper_dir;
+}
+
+CString CFilenames::ToolsDirectory() {
+  assert(_startup_path != "");
+  CString tools_dir = CString(_startup_path) + "tools\\";
+  Log("ToolsDirectory", (char*)tools_dir.GetString());
+  return tools_dir;
 }
 
 CString CFilenames::ReplaySessionDirectory() {
@@ -160,7 +182,7 @@ CString CFilenames::LogsDirectory() {
 	return path;
 };
 
-CString CFilenames::LogFilename() {
+CString CFilenames::LogFilePath() {
 	CString path;
 	path.Format("%soh_%lu.log", LogsDirectory(), p_sessioncounter->session_id());
   Log("LogFilename", path.GetString());
@@ -220,8 +242,24 @@ CString CFilenames::VersusPath() {
 	return result;
 }
 
-CString CFilenames::OpenPPLLibraryPath() {
-  CString result = OpenHoldemDirectory() + "\\OpenPPL_Library.ohf";
-  Log("OpenPPLLibraryPath", result.GetString());
-	return result;
+CString CFilenames::CustomLibraryPath() {
+  CString result = BotlogicDirectory() + "\\custom_function_library.ohf";
+  Log("CustomLibraryPath", result.GetString());
+  return result;
+}
+
+CString CFilenames::ManualModePath() {
+  CString result = ToolsDirectory() + "\\ManualMode.exe";
+  Log("ManualModePath", result.GetString());
+  return result;
+}
+
+bool CFilenames::Exists(CString filename_or_pattern) {
+  // https://msdn.microsoft.com/en-us/library/windows/desktop/aa364418%28v=vs.85%29.aspx
+  WIN32_FIND_DATA FindFileData;
+  HANDLE hFind;
+  hFind = FindFirstFile(filename_or_pattern, &FindFileData);
+  if (hFind == INVALID_HANDLE_VALUE) return false;
+  FindClose(hFind);
+  return true;
 }

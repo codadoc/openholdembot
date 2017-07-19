@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #include "stdafx.h"
 
@@ -26,31 +26,31 @@ const TCHAR k_KeyboardLayout_UK_US_English[KL_NAMELENGTH] = "00000409";
 
 CConfigurationCheck::CConfigurationCheck()
 {
-	CheckEverything();
+  CheckEnabledConfigurationChecks(false);
 }
 
 CConfigurationCheck::~CConfigurationCheck()
 {}
 
-void CConfigurationCheck::CheckEverything()
+void CConfigurationCheck::ForceAllConfigurationChercks() {
+  CheckEnabledConfigurationChecks(true);
+}
+
+void CConfigurationCheck::CheckEnabledConfigurationChecks(bool force_all)
 {
 	// Check really critical settings in any case.
 	// OpenHoldem will never work, if these are not right.
 	CheckColourDepth();
 	CheckForSwapMouseBtns();
-
 	// OpenHoldem may or may not work, if these are not right.
-	if (preferences.configurationcheck_input_settings())
+	if (preferences.configurationcheck_input_settings() || force_all)
 	{
 		CheckInputSettings();
 	}
-
-	if (preferences.configurationcheck_theme_settings())
-	{
-		CheckForClassicalTheme();
-	}
-
-	if (preferences.configurationcheck_font_settings())
+	// No longer checking CheckForClassicalTheme();
+  // as now (9.1.3) all themes (probably) are supported
+  // out of the box with the same tablemaps.
+	if (preferences.configurationcheck_font_settings() || force_all)
 	{
 		CheckForFontSmoothing();
 	}
@@ -190,43 +190,6 @@ void CConfigurationCheck::CheckForSwapMouseBtns()
 			"Caution: Swap Mouse Buttons Activated");
 	}
 }
-
-void CConfigurationCheck::CheckForClassicalTheme()
-{
-	CString p_szKeyThemeActive = "Software\\Microsoft\\Windows\\CurrentVersion\\ThemeManager\\";
-	CString p_szKeyWinVersion = "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\";
-
-	CString p_szNameThemeActive = "ThemeActive";
-	CString p_szNameWinVersion = "CurrentVersion";
-
-	bool classic_theme = false;
-
-	CString win_Vs = GetValue("HKLM", 1, p_szKeyWinVersion, p_szNameWinVersion);
-
-	CString WIN_2000 = "5.0";
-	CString SRV_2003 = "5.2";
-
-	if(win_Vs == WIN_2000 || win_Vs == SRV_2003)
-	{
-		classic_theme = true;
-	}
-
-	else if (atoi(GetValue("HKCU", 1, p_szKeyThemeActive, p_szNameThemeActive)) == 0)
-	{
-		classic_theme = true;
-	}
-
-	if (classic_theme == false)
-	{
-		OH_MessageBox_Error_Warning("Classical Theme Not Found\n"
-			"Settings deviate from recommended defaults.\n"
-			"\n"
-			"Please enable windows classical theme.\n"
-			"for optimum compatibility \n",
-			"Caution: Classical Theme Disabled");
-	}
-}
-
 
 void CConfigurationCheck::CheckForFontSmoothing()
 {

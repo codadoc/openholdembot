@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #include "stdafx.h"
 #include "CSymbolEngineAutoplayer.h"
@@ -21,9 +21,7 @@
 #include "CIteratorThread.h"
 #include "CPreferences.h"
 #include "CScraper.h"  
-#include "CScraperAccess.h"
 #include "CStableFramesCounter.h"
-#include "CStringMatch.h"
 #include "CSymbolEngineUserchair.h"
 #include "CTableState.h"
 #include "MagicNumbers.h"
@@ -48,7 +46,8 @@ void CSymbolEngineAutoplayer::InitOnStartup() {
 	_isfinalanswer = false;
 }
 
-void CSymbolEngineAutoplayer::ResetOnConnection() {
+
+void CSymbolEngineAutoplayer::UpdateOnConnection() {
 	_myturnbits      = 0;
 	_issittingin     = false;
 	_isautopost      = false;
@@ -56,16 +55,16 @@ void CSymbolEngineAutoplayer::ResetOnConnection() {
 	_last_myturnbits = 0;
 }
 
-void CSymbolEngineAutoplayer::ResetOnHandreset() {
+void CSymbolEngineAutoplayer::UpdateOnHandreset() {
 }
 
-void CSymbolEngineAutoplayer::ResetOnNewRound() {
+void CSymbolEngineAutoplayer::UpdateOnNewRound() {
 }
 
-void CSymbolEngineAutoplayer::ResetOnMyTurn() {
+void CSymbolEngineAutoplayer::UpdateOnMyTurn() {
 }
 
-void CSymbolEngineAutoplayer::ResetOnHeartbeat() {
+void CSymbolEngineAutoplayer::UpdateOnHeartbeat() {
 	_last_myturnbits = _myturnbits;
 	_myturnbits      = 0;
 	_issittingin     = false;
@@ -79,22 +78,21 @@ void CSymbolEngineAutoplayer::ResetOnHeartbeat() {
 void CSymbolEngineAutoplayer::CalculateMyTurnBits() {
 	write_log(preferences.debug_symbolengine(), "[CSymbolEngineAutoplayer] myturnbits reset: %i\n", _myturnbits);
 	for (int i=0; i<k_max_number_of_buttons; i++) {
-		if (p_scraper->GetButtonState(i)) {
-      CString button_label = p_table_state->_SCI._button_label[i];
+		if (p_casino_interface->_technical_autoplayer_buttons[i].IsClickable()) {
       // myturnbits  
       // Since OH 7.7.2 in the form FCKRA 
       // like the butons in the GUI (F =lowest bit) 
-      if (p_string_match->IsStringFold(button_label))	{
+      if (p_casino_interface->_technical_autoplayer_buttons[i].IsFold()) {
 				_myturnbits |= kMyTurnBitsFold;
-			}	else if (p_string_match->IsStringCall(button_label)) 	{
+			}	else if (p_casino_interface->_technical_autoplayer_buttons[i].IsCall()) {
 				_myturnbits |= kMyTurnBitsCall;
-			}	else if (p_string_match->IsStringCheck(button_label))	{
+			}	else if (p_casino_interface->_technical_autoplayer_buttons[i].IsCheck()) {
 				_myturnbits |= kMyTurnBitsCheck;
-      }	else if (p_string_match->IsStringRaise(button_label) || button_label.MakeLower() == "swag")	{
+      }	else if (p_casino_interface->_technical_autoplayer_buttons[i].IsRaise()) {
 				_myturnbits |= kMyTurnBitsRaise;
-			}	else if (p_string_match->IsStringAllin(button_label)) {
+			}	else if (p_casino_interface->_technical_autoplayer_buttons[i].IsAllin()) {
 				_myturnbits |= kMyTurnBitsAllin;
-			}	else if (p_string_match->IsStringAutopost(button_label)) 	{
+			}	else if (p_casino_interface->_technical_autoplayer_buttons[i].IsAutopost()) {
 				_isautopost = true;
 			}
 		}
@@ -103,16 +101,16 @@ void CSymbolEngineAutoplayer::CalculateMyTurnBits() {
 }
 
 void CSymbolEngineAutoplayer::CalculateSitInState() {
-  for (int i=0; i<k_max_number_of_buttons; i++) {
-    if (p_string_match->IsStringSitin(p_table_state->_SCI._button_label[i])) {
+  for (int i=0; i<k_max_number_of_buttons; ++i) {
+    if (p_casino_interface->_technical_autoplayer_buttons[i].IsSitin()) {
 	    // Sitin-button found
       // We are sitting in if that button can NOT be clicked
-	    _issittingin = !p_scraper->GetButtonState(i);
+	    _issittingin = !p_casino_interface->_technical_autoplayer_buttons[i].IsClickable();
 	    return;
-    } else if (p_string_match->IsStringSitout(p_table_state->_SCI._button_label[i])) {
+    } else if (p_casino_interface->_technical_autoplayer_buttons[i].IsSitout()) {
 	    // Sitout-button found
       // We are sitting in if that button CAN be clicked
-	    _issittingin = (p_scraper->GetButtonState(i));
+	    _issittingin = (p_casino_interface->_technical_autoplayer_buttons[i].IsClickable());
 	    return;
     }
   }
@@ -155,7 +153,8 @@ void CSymbolEngineAutoplayer::CalculateFinalAnswer()
   write_log(preferences.debug_autoplayer(), "[AutoPlayer] Number of stable frames: % d\n", p_stableframescounter->NumberOfStableFrames());
 	// Scale f$delay to a number of scrapes and avoid division by 0 and negative values
 	unsigned int additional_frames_to_wait = 0;
-  double desired_delay_in_seconds = p_function_collection->EvaluateAutoplayerFunction(k_standard_function_delay);
+  CString delay_function = k_standard_function_names[k_standard_function_delay];
+  double desired_delay_in_seconds = p_function_collection->Evaluate(delay_function, preferences.log_delay_function());
   if (preferences.scrape_delay() > 0 && desired_delay_in_seconds > 0) {  
     additional_frames_to_wait = desired_delay_in_seconds / preferences.scrape_delay();
   }
@@ -163,7 +162,7 @@ void CSymbolEngineAutoplayer::CalculateFinalAnswer()
 	// If we don't have enough stable frames, or have not waited f$delay milliseconds, then return.
 	if (p_stableframescounter->NumberOfStableFrames() < preferences.frame_delay() + additional_frames_to_wait) {
 		write_log(preferences.debug_autoplayer(), "[AutoPlayer] Not Final Answer because we don't have enough stable frames, or have not waited f$delay (=%.0f ms)\n", 
-      p_function_collection->EvaluateAutoplayerFunction(k_standard_function_delay));
+       p_function_collection->Evaluate(delay_function, preferences.log_delay_function()));
 		_isfinalanswer = false;
 	}
 }
@@ -194,7 +193,7 @@ bool CSymbolEngineAutoplayer::IsFirstHeartbeatOfMyTurn()
 		&& (_last_myturnbits == 0));
 }
 
-bool CSymbolEngineAutoplayer::EvaluateSymbol(const char *name, double *result, bool log /* = false */)
+bool CSymbolEngineAutoplayer::EvaluateSymbol(const CString name, double *result, bool log /* = false */)
 {
   FAST_EXIT_ON_OPENPPL_SYMBOLS(name);
 	if (memcmp(name, "is", 2)==0)

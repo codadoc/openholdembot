@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #ifndef INC_CHANDRESETDETECTOR_H
 #define INC_CHANDRESETDETECTOR_H
@@ -30,6 +30,8 @@ class CHandresetDetector {
 	CString GetHandNumber();
  private: 
 	void CalculateIsHandreset();
+  void ClearSeenHandResets();
+ private:
 	bool IsHandresetByDealerChair();
 	bool IsHandresetByUserCards();
 	bool IsHandresetByHandNumber();
@@ -53,8 +55,8 @@ public:
  private:
 	int dealerchair;
 	int last_dealerchair;
-	int playercards[kNumberOfCardsPerPlayer];
-	int last_playercards[kNumberOfCardsPerPlayer];
+	int playercards[kMaxNumberOfCardsPerPlayer];
+	int last_playercards[kMaxNumberOfCardsPerPlayer];
  private:
   double _potsize;
   double _last_potsize;
@@ -62,8 +64,8 @@ public:
   int    _last_community_cards;
   int    _nopponentsplaying;
   int    _last_nopponentsplaying;
-  double _balance[k_max_number_of_players];
-  double _last_balance[k_max_number_of_players];
+  double _balance[kMaxNumberOfPlayers];
+  double _last_balance[kMaxNumberOfPlayers];
   double _bblind;
   double _last_bblind;
   bool   _small_blind_existed_last_hand;

@@ -1,19 +1,20 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #include "stdafx.h"
 #include "CDebugTab.h"
 
+#include "CFormulaParser.h"
 #include "CPreferences.h"
 
 CDebugTab *p_debug_tab = NULL; 
@@ -32,13 +33,17 @@ TPParseTreeNode _expressions[kMaxSizeOfDebugTab];
 
 CDebugTab::CDebugTab() {
   // Name is alwayss the same and required for function lookup
-  _name = "f$debug";
+  _name = CString("f$debug");
   _number_of_expressions = 0;
   Clear();
 }
 
 CDebugTab::~CDebugTab() {
   Clear();
+}
+
+void CDebugTab::Parse() {
+  p_formula_parser->ParseDebugTab(_function_text);
 }
 
 CString CDebugTab::EvaluateAll() {

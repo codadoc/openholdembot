@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #include "StdAfx.h"
 #include "CReplayFrame.h"
@@ -86,12 +86,12 @@ void CReplayFrame::CreateReplayFrame(void){
 		// First line has to be the "title" of the table.
 		// This is no longer valid HTML, but the way Ray.E.Bornert did it
 		// for WinHoldem and WinScrape.
-		fprintf(fp, "%s\n", p_table_state->_title);
+		fprintf(fp, "%s\n", LPCSTR(p_table_state->TableTitle()->Title()));
     fprintf(fp, "<br>\n");
 		// HTML header
 		fprintf(fp, "<html>\n");
 		fprintf(fp, "  <head>\n");
-		fprintf(fp, "    <title>%s</title>\n", p_table_state->_title);
+		fprintf(fp, "    <title>%s</title>\n", LPCSTR(p_table_state->TableTitle()->Title()));
 		fprintf(fp, "  </head>");
 		fprintf(fp, "<style>\n");
 		fprintf(fp, "td {text-align:right;}\n");
@@ -102,7 +102,7 @@ void CReplayFrame::CreateReplayFrame(void){
 		fprintf(fp, "<img src=\"frame%06d.bmp\">\n", _next_replay_frame);
 		fprintf(fp, "<br>\n");
     // Title, data, frame-number, OH-version
-    fprintf(fp, "%s", GeneralInfo());
+    fprintf(fp, "%s", LPCSTR(GeneralInfo()));
     // Links forwards and backwards to the next frames
 		fprintf(fp, "%s", LPCSTR(GetLinksToPrevAndNextFile()));
 		fprintf(fp, "<br>\n");
@@ -143,7 +143,7 @@ CString CReplayFrame::GeneralInfo() {
   result += "<table border=4 cellpadding=1 cellspacing=1>\n";
   // Table title
   result += "<tr><td>\n";
-	result += p_table_state->_title;
+	result += p_table_state->TableTitle()->Title();
   result += "</td></tr>\n";
 	// Session, 
   result += "<tr><td>\n";
@@ -168,42 +168,6 @@ CString CReplayFrame::GeneralInfo() {
   // Finish table
   result += "</table>\n";
   return result;
-}
-
-CString CReplayFrame::GetCardHtml(unsigned int card) {
-	CString suit, color, rank, final;
-  suit =	card == CARD_BACK ? "*" :
-	  card == CARD_NOCARD ? "&nbsp" :
-	  StdDeck_SUIT(card) == Suit_CLUBS ? "&clubs;" :
-	  StdDeck_SUIT(card) == Suit_DIAMONDS ? "&diams;" :
-	  StdDeck_SUIT(card) == Suit_HEARTS ? "&hearts;" :
-	  StdDeck_SUIT(card) == Suit_SPADES ? "&spades;" :
-	  "&nbsp";
-  color = card == CARD_BACK ? "black" :
-		card == CARD_NOCARD ? "black" :
-		StdDeck_SUIT(card) == Suit_CLUBS ? "green" :
-		StdDeck_SUIT(card) == Suit_DIAMONDS ? "blue" :
-		StdDeck_SUIT(card) == Suit_HEARTS ? "red" :
-		StdDeck_SUIT(card) == Suit_SPADES ? "black" :
-		"black";
-  rank =	card == CARD_BACK ? "*" :
-	  card == CARD_NOCARD ? " " :
-	  StdDeck_RANK(card) == Rank_ACE ? "A" :
-	  StdDeck_RANK(card) == Rank_KING ? "K" :
-	  StdDeck_RANK(card) == Rank_QUEEN ? "Q" :
-	  StdDeck_RANK(card) == Rank_JACK ? "J" :
-	  StdDeck_RANK(card) == Rank_TEN ? "T" :
-	  StdDeck_RANK(card) == Rank_9 ? "9" :
-	  StdDeck_RANK(card) == Rank_8 ? "8" :
-	  StdDeck_RANK(card) == Rank_7 ? "7" :
-		StdDeck_RANK(card) == Rank_6 ? "6" :
-		StdDeck_RANK(card) == Rank_5 ? "5" :
-		StdDeck_RANK(card) == Rank_4 ? "4" :
-		StdDeck_RANK(card) == Rank_3 ? "3" :
-		StdDeck_RANK(card) == Rank_2 ? "2" :
-		"&nbsp";
-	final.Format("<font color=%s>%s%s</font>", color, rank, suit);
-	return final;
 }
 
 CString CReplayFrame::GetPlayerInfoAsHTML() {
@@ -245,18 +209,17 @@ CString CReplayFrame::GetPlayerInfoAsHTML() {
 		text += "</td>\n";
 		player_info += text;  
 		// Cards
-		text.Format("      <td>%s%s</td>\n",
-      GetCardHtml(p_table_state->_players[i]._hole_cards[0].GetValue()),
-      GetCardHtml(p_table_state->_players[i]._hole_cards[1].GetValue()));
+    text.Format("      <td>%s</td>\n",
+      p_table_state->Player(i)->CardsAsHTML());
 		player_info += text;  
 		// Bet
-		text.Format("      <td>%11.2f</td>\n", p_table_state->_players[i]._bet);
+		text.Format("      <td>%11.2f</td>\n", p_table_state->Player(i)->_bet.GetValue());
 		player_info += text; 
 		// Balance
-		text.Format("      <td>%11.2f</td>\n", p_table_state->_players[i]._balance);
+		text.Format("      <td>%11.2f</td>\n", p_table_state->Player(i)->_balance.GetValue());
 		player_info += text;  
 		// Name
-		text.Format("      <td>%-15s</td>\n", p_table_state->_players[i]._name.GetString());
+		text.Format("      <td>%-15s</td>\n", p_table_state->Player(i)->name().GetString());
 		player_info += text;
 		player_info += "    </tr>\n";
 	}
@@ -306,12 +269,12 @@ CString CReplayFrame::GetCommonCardsAsHTML() {
 	common_cards += "<tr><th>commoncard</th></tr>\n";
 	common_cards += "<tr>\n";
 	// Common cards
-	text.Format("<td>%s%s%s%s%s</td>\n",
-    GetCardHtml(p_table_state->_common_cards[0].GetValue()),
-    GetCardHtml(p_table_state->_common_cards[1].GetValue()),
-    GetCardHtml(p_table_state->_common_cards[2].GetValue()),
-    GetCardHtml(p_table_state->_common_cards[3].GetValue()),
-    GetCardHtml(p_table_state->_common_cards[4].GetValue()));
+  text.Format("<td>%s%s%s%s%s</td>\n",
+    p_table_state->CommonCards(0)->ToHTML(),
+    p_table_state->CommonCards(1)->ToHTML(),
+    p_table_state->CommonCards(2)->ToHTML(),
+    p_table_state->TurnCard()->ToHTML(),
+    p_table_state->RiverCard()->ToHTML());
 	common_cards += text;
 	// Table footer
 	common_cards += "</tr>\n";
@@ -326,14 +289,14 @@ CString CReplayFrame::GetPotsAsHTML() {
 	pots += "  <tr><th>#</th><th>pot</th></tr>\n";
 	pots += "  <tr>\n";
 	// Main pot
-	text.Format("    <td>0</td><td>%11.2f</td>\n", p_table_state->_pot[0]);
+	text.Format("    <td>0</td><td>%11.2f</td>\n", p_table_state->Pot(0));
 	pots += text;
 	pots += "  </tr>\n";
 	// Side pots
-	for (int i=1; i<k_max_number_of_pots; i++) {
-		if (p_table_state->_pot[i]) {
+	for (int i=1; i<kMaxNumberOfPots; i++) {
+		if (p_table_state->Pot(i)) {
 			pots += "  <tr>\n";
-			text.Format("    <td>%d</td><td>%11.2f</td>\n", i,p_table_state->_pot[i]);
+			text.Format("    <td>%d</td><td>%11.2f</td>\n", i, p_table_state->Pot(i));
 			pots += text;
 			pots += "  </tr>\n";
 		}	else {

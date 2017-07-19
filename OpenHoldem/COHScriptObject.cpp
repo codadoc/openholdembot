@@ -1,51 +1,81 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #include "stdafx.h"
 #include "COHScriptObject.h"
 
-#include "CFormulaParser.h"
 #include "CFunctionCollection.h"
 
-COHScriptObject::COHScriptObject()
-{
+COHScriptObject::COHScriptObject() {
 	_name = "";
 	_function_text = "";
-    _starting_line_of_function = 0;
+  _file_path = kNoSourceFileForThisCode;
+  _starting_line_of_function = kUndefinedZero;
+  _is_read_only = false;
 }
 
 COHScriptObject::COHScriptObject(
-    CString *new_name, 
-    CString *new_function_text,
+    CString new_name, 
+    CString new_function_text,
+    CString file_path,
     int starting_line_of_function) {
-  _name = *new_name;
-  _function_text = *new_function_text;
+  _name = new_name;
+  _function_text = new_function_text;
+  _file_path = file_path;
   _starting_line_of_function = starting_line_of_function;
 }
 
-COHScriptObject::~COHScriptObject()
-{}
+COHScriptObject::~COHScriptObject() {
+}
 
-double COHScriptObject::Evaluate(bool log /* = false */)
-{
+void COHScriptObject::Parse() {
+  // virtual
+}
+
+double COHScriptObject::Evaluate(bool log /* = false */) {
 	bool this_method_should_always_get_overwritten_and_never_called = false;
 	assert(this_method_should_always_get_overwritten_and_never_called);
 	return 0.0;
 }
 
+void COHScriptObject::SetText(CString text, bool is_read_only_library_symbol /* = true */) { 
+  _function_text = text; 
+  if (is_read_only_library_symbol == false) {
+    // Functions and lists that get modified with the editor
+    // need to get marked as not read-only.
+    // This is especially necessary for new user-defined functions 
+    // that didn't get loaded from a formula-file
+    // and default autoplayer-functions which got modified.
+    //
+    // We don't want to set this flag here,
+    // only remove it on users modification
+    _is_read_only = false;
+  }
+}
+
 // virtual
 bool COHScriptObject::EvaluatesToBinaryNumber() {
   return false;
+}
+
+bool COHScriptObject::IsOpenPPLSymbol(CString name) { 
+  // "Random" is no longer an OpenPPL-symbol
+  // from a technical point of view
+  // as it is implemented internally to avoid caching.
+  // IsOpenPPLSymbol() needs to consider this fact
+  // as it affects e.g. the autoplayer-trace.
+  if (name == "Random") return false;
+  return isupper(name[0]); 
 }
 
 bool COHScriptObject::IsMainOpenPPLFunction(CString name) {
@@ -144,10 +174,6 @@ int COHScriptObject::EditorGroupingCategory() {
   // Treat undefined as user-defined;
   return 7;
 }
-
-void COHScriptObject::Parse() {
-  p_formula_parser->ParseSingleFormula(_name, function_text());
-};
 
 CString COHScriptObject::Serialize() {
   CString result = "##" + _name + "##\r\n" + _function_text;

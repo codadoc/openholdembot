@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 // DialogFormulaScintilla.cpp : implementation file
 //
@@ -123,12 +123,12 @@ CDlgFormulaScintilla::CDlgFormulaScintilla(CWnd* pParent /*=NULL*/) :
 {
 	in_startup = true;
   
-  if (!p_function_collection->IsOpenPPLProfile()) {
+  if (p_function_collection->IsOpenPPLProfile()) {
     // Either use autoplayer-functions (default) or OpenPPL
     // but not both, because they are incompatible
-	  m_standard_headings.Add("Autoplayer Functions");
-  } else {
     m_standard_headings.Add("OpenPPL Functions");
+  } else {
+    m_standard_headings.Add("Autoplayer Functions");
   }
 	m_standard_headings.Add("Secondary Functions");
   m_standard_headings.Add("Hopper Functions");
@@ -501,6 +501,15 @@ void CDlgFormulaScintilla::PopulateFormulaTree() {
   HTREEITEM	parent = NULL, hItem;
   COHScriptObject *p_OH_script_object = NULL;
 
+  assert(m_standard_headings.GetSize() > 0);
+  if (p_function_collection->IsOpenPPLProfile()) {
+    // Either use autoplayer-functions (default) or OpenPPL
+    // but not both, because they are incompatible
+    m_standard_headings.SetAt(0, "OpenPPL Functions");
+  } else {
+    m_standard_headings.SetAt(0, "Autoplayer Functions");
+  }
+
   for (int j=0; j<m_standard_headings.GetSize(); j++) {
     if (m_standard_headings[j].IsEmpty()) {
 	    parent = NULL;
@@ -511,6 +520,7 @@ void CDlgFormulaScintilla::PopulateFormulaTree() {
     switch(j) {
       case 0: 
         if (p_function_collection->IsOpenPPLProfile()) {
+          AddFunctionToTree(parent, k_standard_function_names[k_autoplayer_function_beep]);
           // OpenPPL-functions
           for (int i=kBetroundPreflop; i<=kBetroundRiver; ++i) {
             AddFunctionToTree(parent, k_OpenPPL_function_names[i]);
@@ -526,7 +536,7 @@ void CDlgFormulaScintilla::PopulateFormulaTree() {
         AddFunctionToTree(parent, "notes");
         AddFunctionToTree(parent, "DLL");
         AddStandardFunctionsToTree(parent, 
-          k_standard_function_prefold, k_standard_function_allin_on_betsize_balance_ratio);
+          k_standard_function_prefold, k_standard_function_shoot_replay_frame);
         break;
       case 2:
         // Hopper Functions
@@ -561,8 +571,7 @@ void CDlgFormulaScintilla::PopulateFormulaTree() {
 
   p_OH_script_object = p_function_collection->GetFirst();
   while (p_OH_script_object != NULL) {
-    if (p_OH_script_object->IsList())
-    {
+    if (p_OH_script_object->IsList()) {
       hItem = m_FormulaTree.InsertItem(p_OH_script_object->name(), parent);
       m_FormulaTree.SetItemData(hItem, (DWORD_PTR)FindScintillaWindow(
         p_OH_script_object->name()));
@@ -575,7 +584,7 @@ void CDlgFormulaScintilla::PopulateFormulaTree() {
   p_OH_script_object = p_function_collection->GetFirst();
   while (p_OH_script_object != NULL) {
     m_FormulaTree.SetItemState(parent, TVIS_BOLD, TVIS_BOLD);
-    if (p_OH_script_object->IsUserDefinedFunction()) {
+    if (p_OH_script_object->IsUserDefinedFunction() && !p_OH_script_object->IsReadOnlyLibrarySymbol()) {
       AddFunctionToTree(parent, p_OH_script_object->name());
     }
     p_OH_script_object = p_function_collection->GetNext();
@@ -911,15 +920,22 @@ void CDlgFormulaScintilla::OnNew() {
     newdlg.is_function = true;
   }
   if (newdlg.DoModal() != IDOK) return;
-  if (p_function_collection->Exists(newdlg.CSnewname)) {
-	OH_MessageBox_Interactive("Cannot proceed as function or list already exists", "Error", 0);
-	return;
+  if (newdlg.CSnewname == "f$call") {
+    // Set a non-empty-function -text
+    // Must contain at least two spaces, as "empty" functions contain 1 space
+    // as the editor does not work with completely function-texts.
+    p_function_collection->LookUp("f$call")->SetText("  ");
+    PopulateFormulaTree();
+    return;
   }
-
+  if (p_function_collection->Exists(newdlg.CSnewname)) {
+    OH_MessageBox_Interactive("Cannot proceed as function or list already exists", "Error", 0);
+    return;
+  }
   if (newdlg.is_function == false) {
     // Create new list
-    COHScriptList *p_new_list = new COHScriptList(&newdlg.CSnewname, 
-      NULL, kNoAbsoluteLineNumberExists);
+    // It will be released later by the function collection
+    COHScriptList *p_new_list = new COHScriptList(newdlg.CSnewname, "");
     // Add it to working set CArray
     p_function_collection->Add((COHScriptObject*)p_new_list);
     // Add to tree
@@ -931,14 +947,14 @@ void CDlgFormulaScintilla::OnNew() {
       newhtitem = m_FormulaTree.InsertItem(newdlg.CSnewname, p);
     }
   } else {
-    // Create new function
-    CFunction *p_new_function = new CFunction(&newdlg.CSnewname, 
-      NULL, kNoAbsoluteLineNumberExists);
+    // The added functions stays in the collection 
+    // until a new profile gets loaded, until it gets overwritten]
+    // or until the entire collection gets released
+    CFunction *p_new_function = new CFunction(newdlg.CSnewname, "");
     // Add it to working set CArray
     p_function_collection->Add((COHScriptObject*)p_new_function);
     // Add to tree
     HTREEITEM hNewParent = hUDFItem;
-
     // !! Candidate for refactoring, probably duplicate functionality
     // !! Formula grouping
     CString tempString;
@@ -948,10 +964,9 @@ void CDlgFormulaScintilla::OnNew() {
     {
 	    // Does a group already exist?
 	    HTREEITEM hExistingGroup = FindUDFGroupItem(groupName);
-	    if (hExistingGroup) 
-		    hNewParent = hExistingGroup;
-	    else 
-	    {
+      if (hExistingGroup) {
+        hNewParent = hExistingGroup;
+      } else {
 		    // If a group does not exist, is there another UDF to group together?
 		    HTREEITEM matchingItem = FindUDFStartingItem(groupName);
 		    if (matchingItem) 
@@ -1028,8 +1043,9 @@ void CDlgFormulaScintilla::DeleteFormerParentItemIfEmpty(HTREEITEM sibbling) {
 void CDlgFormulaScintilla::CloseTabOnDelete(CString name) {
   for (int i=0; i<m_ScinArray.GetSize(); ++i) {
     if (name == m_ScinArray.GetAt(i)._name) {
-      //???m_ScinArray.GetAt(i)._pWnd->CloseWindow
+      m_ScinArray.GetAt(i)._pWnd->CloseWindow();
       delete m_ScinArray.GetAt(i)._pWnd;
+      m_ScinArray.RemoveAt(i);
       break;
     }
   }
@@ -1047,6 +1063,7 @@ void CDlgFormulaScintilla::OnDelete() {
   // Delete a UDF or list
   HTREEITEM h_item = m_FormulaTree.GetSelectedItem();
   CString name = m_FormulaTree.GetItemText(h_item);
+  CloseTabOnDelete(name); 
   p_function_collection->Delete(name);
   m_dirty = true;
   // Clear the tab
@@ -1123,7 +1140,7 @@ void CDlgFormulaScintilla::DoFind(bool DirDown)
 		m_pActiveScinCtrl->SearchBackward((char *)m_FindLastSearch.GetString());
 }
 
-LONG CDlgFormulaScintilla::OnFindReplace(WPARAM, LPARAM lParam)
+LRESULT CDlgFormulaScintilla::OnFindReplace(WPARAM, LPARAM lParam)
 {
 	LPFINDREPLACE lpFindReplace = (LPFINDREPLACE) lParam;
 
@@ -1218,7 +1235,7 @@ void CDlgFormulaScintilla::OnHandList()  {
     CString old_comment = ExtractCommentFromHandList(p_handlist->function_text());
     CString new_handlist_without_comment = p_handlist->function_text();
     CString new_handlist_with_comment = old_comment + new_handlist_without_comment;
-    p_handlist->SetText(new_handlist_with_comment); 
+    p_handlist->SetText(new_handlist_with_comment, false); 
     p_handlist->Parse();
 
     // update scintilla window
@@ -1245,7 +1262,6 @@ BOOL CDlgFormulaScintilla::DestroyWindow()
 	p_flags_toolbar->CheckButton(ID_MAIN_TOOLBAR_FORMULA, false);
 
 	return CDialog::DestroyWindow();
-	return 0;
 }
 
 void CDlgFormulaScintilla::PostNcDestroy()
@@ -1461,6 +1477,7 @@ void CDlgFormulaScintilla::OnBnClickedCalc() {
 
   ClearCalcResult();
   OnBnClickedApply();
+  p_function_collection->ClearCache();
   
   if (!p_function_collection->BotLogicCorrectlyParsed()) {
     s.Format("There are syntax errors in one or more formulas that are\n");
@@ -1527,6 +1544,7 @@ void CDlgFormulaScintilla::StopAutoButton()
 
 void CDlgFormulaScintilla::UpdateDebugAuto(void) {
   p_function_collection->ClearCache();
+  assert(p_debug_tab != NULL);
   CString result = p_debug_tab->EvaluateAll();
   m_pActiveScinCtrl->SendMessage(SCI_SETMODEVENTMASK, 0, 0);
   m_pActiveScinCtrl->SendMessage(SCI_SETTEXT,0,(LPARAM)result.GetString());
@@ -1555,7 +1573,8 @@ void CDlgFormulaScintilla::CopyTabContentsToFormulaSet() {
       continue;
     }
     p_function_collection->SetFunctionText(name, 
-      m_ScinArray.GetAt(i)._pWnd->GetText());  
+      m_ScinArray.GetAt(i)._pWnd->GetText(),
+      false);  
   }
 }
 
@@ -1567,8 +1586,6 @@ void CDlgFormulaScintilla::OnBnClickedApply() {
   if (p_autoplayer->autoplayer_engaged()) {
 	  WarnAboutAutoplayerWhenApplyingFormula();
   }
-  // Save settings to registry
-  SaveSettingsToRegistry();
   CopyTabContentsToFormulaSet();
   p_function_collection->ParseAll();
   if (!p_function_collection->BotLogicCorrectlyParsed()) {
@@ -1578,14 +1595,14 @@ void CDlgFormulaScintilla::OnBnClickedApply() {
         "contain errors, will likely not act as you expect, and may cause you\n"
         "to lose money at the tables.\n\n"
         "Please only click 'Yes' if you really know what you are doing.",
-        "PARSE ERROR", 
+        "PARSE ERROR(s)", 
         MB_YESNO) != IDYES) {
       return;
     }
   }
   pDoc->SetModifiedFlag(true);
   // Re-calc symbols
-  p_engine_container->EvaluateAll();
+  p_engine_container->EvaluateAll(); // ??? disabled while parsing
   m_dirty = false;
   HandleEnables(true);
 }
@@ -1661,14 +1678,12 @@ void CDlgFormulaScintilla::OnEditSelectAll()
 	m_pActiveScinCtrl->SelectAll();
 }
 
-void CDlgFormulaScintilla::OnTimer(UINT nIDEvent) {
+void CDlgFormulaScintilla::OnTimer(UINT_PTR nIDEvent) {
 	CMenu *edit_menu = this->GetMenu()->GetSubMenu(1);
-
 	if (nIDEvent == MENU_UPDATE_TIMER) 
 	{
 		HandleEnables(false);
 	}
-
 	// Update debug tab (if auto button is pressed)
 	else if (nIDEvent == DEBUG_UPDATE_TIMER)
 	{
@@ -1808,9 +1823,9 @@ void CDlgFormulaScintilla::HandleEnables(bool AllItems)
 	}
 	if (headingText == "Autoplayer Functions")			iWhichTypeSelected = 0;
 	else if (headingText == "Standard Functions")		iWhichTypeSelected = 0;
-	else if (headingText == "Ini Functions")			iWhichTypeSelected = 0;
+	else if (headingText == "Ini Functions")			  iWhichTypeSelected = 0;
 	else if (headingText == "Debug Functions")			iWhichTypeSelected = 0;
-	else if (headingText == "Hand Lists")				iWhichTypeSelected = 1;
+	else if (headingText == "Hand Lists")				    iWhichTypeSelected = 1;
 	else if (headingText == "User Defined Functions")	iWhichTypeSelected = 2;
 	else {
 		HTREEITEM hNextLevelUp = m_FormulaTree.GetParentItem(parentItem);
@@ -1980,6 +1995,9 @@ void CDlgFormulaScintilla::PopulateSymbols()
 	mainParent = parent = AddSymbolTitle("Table Map symbols", NULL, hCatItem);
 	AddSymbol(parent, "sitename$abc", "true if user defined string abc appears within the Table Map symbol _s$_sitename");
 	AddSymbol(parent, "network$def", "true if user defined string def appears within the Table Map symbol _s$_network");
+  AddSymbol(parent, "title$xyz", "true if user defined string xyz appears within the table title");
+  AddSymbol(parent, "islobby", "true if the tablemap is designed to connect to the lobby");
+  AddSymbol(parent, "ispopup", "true if the tablemap is designed to connect to known popup windows");
 
 	mainParent = parent = AddSymbolTitle("Formula file", NULL, hCatItem);
 	AddSymbol(parent, "f$prwin_number_of_iterations", "number of iterations tested by the analyzer(s)");
@@ -1999,6 +2017,7 @@ void CDlgFormulaScintilla::PopulateSymbols()
   AddSymbol(parent, "ismtt", "true if a multi-table tournament is detected");
   AddSymbol(parent, "issng", "true if a single-table tournament is detected");
   AddSymbol(parent, "isfinaltable", "true if you are playing the finaltable of an MTT and the tables can be visually distinguished.");
+  AddSymbol(parent, "isomaha", "true if the game is Omaha.");
   AddSymbol(parent, "isrush", "true if the game is rush / zoom.");
 	
   mainParent = parent = AddSymbolTitle("MTT Info", NULL, hCatItem);
@@ -2019,14 +2038,39 @@ void CDlgFormulaScintilla::PopulateSymbols()
 
 	mainParent = parent = AddSymbolTitle("Chairs", NULL, hCatItem);
 	AddSymbol(parent, "userchair", "user chair number (0-9)");
-	AddSymbol(parent, "dealerchair", "dealer chair number (0-9)");
-	AddSymbol(parent, "raischair", "raising chair number (0-9)");
-	AddSymbol(parent, "oppchair", "raising chair number (0-9)");
+  AddSymbol(parent, "headsupchair", "chair number of the one and only opponent headsup (0-9)");
+  AddSymbol(parent, "bigblindchair", "big blind chair number(0 - 9)");
+  AddSymbol(parent, "smallblindchair", "small blind chair number (0-9)");
+  AddSymbol(parent, "dealerchair", "dealer chair number (0-9)");
+  AddSymbol(parent, "buttonchair", "synonym for dealerchair (0-9)");
+  AddSymbol(parent, "cutoffchair", "cut off chair number (0-9)");
+  AddSymbol(parent, "mp3chair", "middle position 3 chair number (0-9)");
+  AddSymbol(parent, "mp2chair", "middle position  2 chair number (0-9)");
+  AddSymbol(parent, "mp1chair", "middle position  1 chair number (0-9)");
+  AddSymbol(parent, "ep3chair", "early  position 3 chair number (0-9)");
+  AddSymbol(parent, "ep2chair", "early  position 2 chair number (0-9)");
+  AddSymbol(parent, "ep1chair", "early  position 1 chair number (0-9)");
+  AddSymbol(parent, "utgchair", "under the gun chair number (0-9)");
+  // Chairs, raisers and callers
+  AddSymbol(parent, "firstcallerchair", "first caller chair number (0-9)");
+  AddSymbol(parent, "lastcallerchair", "last caller chair number (0-9)");
+  AddSymbol(parent, "firstraiserchair", "first raiser chair number (0-9)");
+  AddSymbol(parent, "lastraiserchair", "last raiser chair number (0-9)");
+  // lastraiserchair and raischair are synonyms
+	AddSymbol(parent, "raischair", "synonym for lastraiserchair (0-9)");
 	AddSymbol(parent, "chair$abc", "player abc chair number (0-9); -1 if not found");
 	AddSymbol(parent, "chairbit$abc", "player abc chairbit (1 << chai_r$abc); 0 if not found");
 
-	mainParent = parent = AddSymbolTitle("Rounds / Positions", NULL, hCatItem);
+	mainParent = parent = AddSymbolTitle("Betting Rounds / Positions", NULL, hCatItem);
 	AddSymbol(parent, "betround", "betting round (1-4) 1=preflop, 2=flop, 3=turn, 4=river");
+  AddSymbol(parent, "previousround", "previous betting round (1-3) 1=preflop, 2=flop, 3=turn");
+  AddSymbol(parent, "currentround", "synonym for betround (1-4) 1=preflop, 2=flop, 3=turn, 4=river");
+  AddSymbol(parent, "preflop", "verbose constant for the 1st betting round");
+  AddSymbol(parent, "flop", "verbose constant for the 2nd betting round");
+  AddSymbol(parent, "turn", "verbose constant for the 3rd betting round");
+  AddSymbol(parent, "river", "verbose constant for the 4th betting round");
+  
+  mainParent = parent = AddSymbolTitle("Positions", NULL, hCatItem);
 	AddSymbol(parent, "betposition", "your bet position (1=sblind,2=bblind,...,nplayersdealt=dealer).  Betposition will change as players fold in front of you.");
 	AddSymbol(parent, "dealposition", "your deal position (1=sblind,2=bblind ... nplayersdealt=dealer).  Dealposition will not change as players fold.");
 	AddSymbol(parent, "callposition", "your numbered offset from the raising player (who is 0)");
@@ -2102,6 +2146,8 @@ void CDlgFormulaScintilla::PopulateSymbols()
 	AddSymbol(parent, "isfourofakind", "true when you have four of a kind");
 	AddSymbol(parent, "isstraightflush", "true when you have a straight flush");
 	AddSymbol(parent, "isroyalflush", "true when you have a royal flush");
+  AddSymbol(parent, "nutfullhouseorfourofakind", "OpenPPL symbol that ranks the strength of quads and full houses, 1 = best, 999 = not at all");
+  AddSymbol(parent, "nutfullhouseorfourofakind_ntotal", "total number of currently possible quads and full houses, for comparison");
 
 	mainParent = parent = AddSymbolTitle("Pocket Tests", NULL, hCatItem);
 	AddSymbol(parent, "ispair", "true when your two dealt pocket cards are rank equal (0-1)");
@@ -2193,6 +2239,14 @@ void CDlgFormulaScintilla::PopulateSymbols()
 	AddSymbol(parent, "srankbitscommon", "bit list of suited card ranks (commons tsuitcommon)");
 	AddSymbol(parent, "srankbitsplayer", "bit list of suited card ranks (yours tsuit)");
 	AddSymbol(parent, "srankbitspoker", "bit list of suited card ranks (pokerval tsuit)");
+  AddSymbol(parent, "suitbitsplayerN", "bit list of card ranks(yours) for suit N (N = 0..3)");
+  AddSymbol(parent, "suitbitscommonN", "bit list of card ranks(common) for suit N (N = 0..3)");
+
+  mainParent = parent = AddSymbolTitle("Suit Constants", NULL, hCatItem);
+  AddSymbol(parent, "clubs", "verbose constant to access suit symbols (value = 2)");
+  AddSymbol(parent, "diamonds", "verbose constant to access suit symbols (value = 1)");
+  AddSymbol(parent, "hearts", "verbose constant to access suit symbols (value = 0)");
+  AddSymbol(parent, "spades", "verbose constant to access suit symbols (value = 3)");
 
 	mainParent = parent = AddSymbolTitle("Rank Hi (aces are hi)", NULL, hCatItem);
 	AddSymbol(parent, "rankhi", "highest card rank (14-2) (yours and commons)");
@@ -2231,12 +2285,12 @@ void CDlgFormulaScintilla::PopulateSymbols()
 	mainParent = parent = AddSymbolTitle("History", NULL, hCatItem);
 	AddSymbol(parent, "nplayersround1 - nplayersround4", "number of players that began betting round 1 - round 4");
 	AddSymbol(parent, "nplayersround", "number of players that began the current betting round");
-	AddSymbol(parent, "prevaction", "record of previously attempted autoplayer action. (-1=fold 0=chec 1=call 2=rais 3=swag 4=alli)");
+	AddSymbol(parent, "prevaction", "record of previously attempted autoplayer action. (-1=fold 0=chec 1=call 2=rais 3=betsize 4=alli)");
   AddSymbol(parent, "didfold", "true if the autoplayer has folded during current round");
 	AddSymbol(parent, "didchec", "true if the autoplayer has checked during current round");
 	AddSymbol(parent, "didcall", "true if the autoplayer has called during current round");
 	AddSymbol(parent, "didrais", "true if the autoplayer has raised during current round");
-	AddSymbol(parent, "didswag", "true if the autoplayer has swag'd during current round");
+	AddSymbol(parent, "didbetsize", "true if the autoplayer has betsized during current round");
   AddSymbol(parent, "didalli", "true if the autoplayer went allin during current round");
 	AddSymbol(parent, "nbetsround1 - nbetsround4", "the largest number of bets in front of any player during round 1- round 4");
 	AddSymbol(parent, "nbetsround", "the largest number of bets in front of any player right now");
@@ -2244,7 +2298,7 @@ void CDlgFormulaScintilla::PopulateSymbols()
 	AddSymbol(parent, "didchecround1 - didchecround4", "true if userchair checked during round 1 - round 4");
 	AddSymbol(parent, "didcallround1 - didcallround4", "true if userchair called during round 1 - round 4");
 	AddSymbol(parent, "didraisround1 - didraisround4", "true if userchair raised during round 1 - round 4");
-	AddSymbol(parent, "didswaground1 - didswaground4", "true if userchair swag'd during round 1 - round 4");
+	AddSymbol(parent, "didbetsizeround1 - didbetsizeround4", "true if userchair betsized during round 1 - round 4");
 	AddSymbol(parent, "didalliround1 - didalliround4", "true if userchair went allin during round 1 - round 4");
 
 	mainParent = parent = AddSymbolTitle("Versus symbols", NULL, hCatItem);
@@ -2303,11 +2357,11 @@ void CDlgFormulaScintilla::PopulateSymbols()
 	AddSymbol(parent, "ac_dealposx (x=0-9)", "returns deal position of specified chair");
 
 	mainParent = parent = AddSymbolTitle("Table stats symbols", "Note: the setting for [y minutes] can be found in Edit/Preferences, and defaults to 15 minutes.", hCatItem);
-	AddSymbol(parent, "floppct", "percentage of players seeing the flop for the last y minutes");
-	AddSymbol(parent, "turnpct", "percentage of players seeing the turn for the last y minutes");
-	AddSymbol(parent, "riverpct", "percentage of players seeing the river for the last y minutes");
-	AddSymbol(parent, "avgbetspf", "average number of bets preflop for the last y minutes");
-	AddSymbol(parent, "tablepfr", "pfr percentage preflop for the last y minutes");
+	AddSymbol(parent, "floppct", "percentage of players seeing the flop for the last 15 hands");
+	AddSymbol(parent, "turnpct", "percentage of players seeing the turn for the last 15 hands");
+	AddSymbol(parent, "riverpct", "percentage of players seeing the river for the last 15 hands");
+	AddSymbol(parent, "avgbetspf", "average number of bets preflop for the last 15 hands");
+	AddSymbol(parent, "tablepfr", "pfr percentage preflop for the last 15 hands");
 	AddSymbol(parent, "maxbalance", "my highest balance during the session");
 	AddSymbol(parent, "handsplayed", "number of hands played this session by this OpenHoldem instance");
   AddSymbol(parent, "handsplayed_headsup", "number of consecutive hands played headsup");
@@ -2331,6 +2385,9 @@ void CDlgFormulaScintilla::PopulateSymbols()
 	mainParent = parent = AddSymbolTitle("Memory symbols", NULL, hCatItem);
 	AddSymbol(parent, "me_st_", "Stores a value. Example: me_st_abc_123_45 - stores the value '123.45' in variable 'abc'.");
 	AddSymbol(parent, "me_re_", "Retrieves a previously stored value. Example: me_re_abc - retrieves the value from variable 'abc'.");
+  AddSymbol(parent, "me_inc_", "Increments a previously stored value. Example: me_inc_abc - increments the value in variable 'abc'.");
+  AddSymbol(parent, "me_add_", "Adds a value to a memory symbol. Example: me_add_outs_4'.");
+  AddSymbol(parent, "me_sub_", "Subtracts a value from a memory symbol. Example: me_sub_outs_1_5");
 
 	mainParent = parent = AddSymbolTitle("Hand Symbols", NULL, hCatItem);
 	AddSymbol(parent, "$RR", "You can reference your dealt hand directly by using the $ symbols. The general form of the $ hand symbols are: $RRs. The $ character is required followed by 1 or 2 standard card rank characters. The hand symbols are not case sensitive.");
@@ -2339,9 +2396,9 @@ void CDlgFormulaScintilla::PopulateSymbols()
 	AddSymbol(parent, "$$ccX", "the card value for common card X (X=0-4)");
 	AddSymbol(parent, "$$crX", "the rank value for common card X (X=0-4)");
 	AddSymbol(parent, "$$csX", "the suit value for common card X (X=0-4)");
-	AddSymbol(parent, "$$pcX", "the card value for player card X (X=0-1)");
-	AddSymbol(parent, "$$prX", "the rank value for player card X (X=0-1)");
-	AddSymbol(parent, "$$psX", "the suit value for player card X (X=0-1)");
+	AddSymbol(parent, "$$pcX", "the card value for player card X (X=0-3)");
+	AddSymbol(parent, "$$prX", "the rank value for player card X (X=0-3)");
+	AddSymbol(parent, "$$psX", "the suit value for player card X (X=0-3)");
 
 	mainParent = parent = AddSymbolTitle("Hand and Board Expressions", NULL, hCatItem);
 	AddSymbol(parent, "hand$XYZ", "True, if you have hand XYZ, e.g. hand$ATSuited");

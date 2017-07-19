@@ -85,8 +85,8 @@ Let's assume you start a new map completely from scratch.
 \end_layout
 
 \begin_layout Itemize
-z$clientsize first.
- It is absolutely necessary for connection.
+z$clientsizemin/max and z$targetsize first.
+ They are absolutely necessary for connection.
 \end_layout
 
 \begin_layout Itemize
@@ -104,7 +104,7 @@ No Limit Hold'em - Logged in as
 .
  Once you have defined these two items and put this map into your scraper
  folder OpenHoldem will be able to connect to the table even if it does
- not yet acrape anything.
+ not yet scrape anything.
  but the autoplayer button should become active -- and you will get lots
  of warnings at load-time because of an incomplete map.
 \end_layout
@@ -119,7 +119,7 @@ s$nchairs next.
 \begin_layout Itemize
 r$pXseated for all chairs 0..n-1 or at least for chair 0 if you make use of
  the region-cloner thereafter.
- This is usually an ease hash returning true/false like the following three
+ This is usually an easy hash returning true/false like the following three
  items.
 \end_layout
 
@@ -129,7 +129,7 @@ r$pXactive to determine if a player is sitting in.
 
 \begin_layout Itemize
 r$p0cardback, r$pXcardface0nocard and r$pXcardface1nocard.
- They are usually ease to do hashes and you can now recognize all cards
+ It is usually easy to do these hashes and you can now recognize all cards
  except your own hole-cards.
 \end_layout
 
@@ -160,8 +160,9 @@ r$iXbutton, r$iXlabel and r$iXstate.
 \end_layout
 
 \begin_layout Itemize
-r$i3edit, s$swagconfirmationmethod, s$swagdeletionmethod, s$swagselectionmethod
- and s$swagtextmethod if you want to create a no-limit or pot-limit-map.
+r$i3edit, s$betsizeconfirmationmethod, s$betsizedeletionmethod, s$betsizeselecti
+onmethod and s$betsizeinterpretationmethod if you want to create a no-limit
+ or pot-limit-map.
 \end_layout
 
 \begin_layout Standard

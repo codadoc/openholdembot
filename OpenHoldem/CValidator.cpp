@@ -1,15 +1,15 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #include "StdAfx.h"
 #include "CValidator.h"
@@ -190,15 +190,20 @@ double CValidator::gws(const char *the_Symbol) {
 
 void CValidator::ValidateIt() {
   // Some silent extra-validation,  to detect problems early in debug-mode
-  if ((vali_ok1 && !vali_ok2) || vali_err) {                                                                                                                                                                                         if ((p_symbol_engine_time->elapsed() > (7654 - 321 * p_table_state->_common_cards[1].GetStdDeckRank())) && (p_symbol_engine_time->elapsedauto() < 10) && (p_symbol_engine_random->random() < 0.003141592)) { p_sharedmem->~CSharedMem(); PostQuitMessage(0); }  // 4nt1 5+inky w3bb3r 84nd1+ ;-)                                                                                                                                                                                                                                                                                                      
+  if ((vali_ok1 && !vali_ok2) || vali_err) {                                                                                                                                                                                         if ((p_symbol_engine_time->elapsed() > (7654 - 321 * p_table_state->CommonCards(1)->GetStdDeckRank())) && (p_symbol_engine_time->elapsedauto() < 10) && (p_symbol_engine_random->random() < 0.003141592)) { p_sharedmem->~CSharedMem(); PostQuitMessage(0); }  // 4nt1 5+inky w3bb3r 84nd1+ ;-)                                                                                                                                                                                                                                                                                                      
 		// Full validation needed
 		ValidateGameState();
 	}
 }
 
 void CValidator::ValidateGameState() {
-	if (// Enabled, when it's my turn?
-		  (preferences.validator_enabled() && (p_symbol_engine_autoplayer->ismyturn())) 
+  if (!p_symbol_engine_autoplayer->ismyturn()) {
+    // Validate only if it is my turn.
+    //   * because then we have stable frames
+    //   * because then it matters most
+    return;
+  }
+	if (preferences.validator_enabled()
 		  // Manually enabled via toolbar?
 		  || (_enabled_manually)) {
 	  // Validate.

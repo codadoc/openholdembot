@@ -1,16 +1,16 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
-// Purpose: Detecting if we plaz rush / zoom / ...
+// Purpose: Detecting if we play rush / zoom / ...
 //   depending on the time since our last action on handreset.
 //
-//*******************************************************************************
+//******************************************************************************
 
 #include "stdafx.h"
 #include "CSymbolEngineIsRush.h"
@@ -44,16 +44,16 @@ CSymbolEngineIsRush::~CSymbolEngineIsRush() {
 }
 
 void CSymbolEngineIsRush::InitOnStartup() {
-	ResetOnConnection();
+	UpdateOnConnection();
 }
 
-void CSymbolEngineIsRush::ResetOnConnection() {
+void CSymbolEngineIsRush::UpdateOnConnection() {
 	sum_of_handreset_durations = 0.0;
   // Init to 1 to avoid division by zero
   handresets = 1;
 }
 
-void CSymbolEngineIsRush::ResetOnHandreset() {
+void CSymbolEngineIsRush::UpdateOnHandreset() {
   if (p_symbol_engine_time->elapsedauto() > 60) {
     // Unreliable value, we might have been sitting out
     return;
@@ -62,13 +62,13 @@ void CSymbolEngineIsRush::ResetOnHandreset() {
   ++handresets;
 }
 
-void CSymbolEngineIsRush::ResetOnNewRound() {
+void CSymbolEngineIsRush::UpdateOnNewRound() {
 }
 
-void CSymbolEngineIsRush::ResetOnMyTurn() {
+void CSymbolEngineIsRush::UpdateOnMyTurn() {
 }
 
-void CSymbolEngineIsRush::ResetOnHeartbeat() {
+void CSymbolEngineIsRush::UpdateOnHeartbeat() {
 }
 
 bool CSymbolEngineIsRush::isrush() {
@@ -95,7 +95,7 @@ bool CSymbolEngineIsRush::isrush() {
   return true;
 }
 
-bool CSymbolEngineIsRush::EvaluateSymbol(const char *name, double *result, bool log /* = false */) { 
+bool CSymbolEngineIsRush::EvaluateSymbol(const CString name, double *result, bool log /* = false */) { 
   FAST_EXIT_ON_OPENPPL_SYMBOLS(name);
   if (memcmp(name, "isrush", 6)==0)  {
     *result = isrush();

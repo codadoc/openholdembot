@@ -1,21 +1,23 @@
-//*******************************************************************************
+//******************************************************************************
 //
 // This file is part of the OpenHoldem project
-//   Download page:         http://code.google.com/p/openholdembot/
-//   Forums:                http://www.maxinmontreal.com/forums/index.php
-//   Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
+//    Source code:           https://github.com/OpenHoldem/openholdembot/
+//    Forums:                http://www.maxinmontreal.com/forums/index.php
+//    Licensed under GPL v3: http://www.gnu.org/licenses/gpl.html
 //
-//*******************************************************************************
+//******************************************************************************
 //
 // Purpose:
 //
-//*******************************************************************************
+//******************************************************************************
 
 #include <stdafx.h>
 #include "CProblemSolver.h"
 
 #include "CAutoConnector.h"
-#include "CScraperAccess.h"
+#include "CCasinoInterface.h"
+#include "CConfigurationCheck.h"
+#include "CPreferences.h"
 #include "CSymbolEngineActiveDealtPlaying.h"
 #include "CSymbolEnginePokerval.h"
 #include "CSymbolEngineTime.h"
@@ -39,7 +41,8 @@ bool CProblemSolver::NoTableMapsInScraperFolder()
 
 bool CProblemSolver::NotConnected()
 {
-	return (p_autoconnector->IsConnected() == false);
+  write_log(preferences.debug_alltherest(), "[CProblemSolver] location Johnny_9\n");
+	return (p_autoconnector->IsConnectedToAnything() == false);
 }
 
 bool CProblemSolver::UserChairUnknown()
@@ -63,15 +66,15 @@ bool CProblemSolver::NoCardsVisible()
 	return (!p_table_state->User()->HasKnownCards());
 }
 
-bool CProblemSolver::NotEnoughButtonsVisible()
-{
+bool CProblemSolver::NotEnoughButtonsVisible() {
 	// We need at least 2 visible buttons to play
-	return (p_scraper_access->NumberOfVisibleButtons() < 2);
+	return (p_casino_interface->NumberOfVisibleAutoplayerButtons() < 2);
 }
 
 
 void CProblemSolver::TryToDetectBeginnersProblems()
 {
+  p_configurationcheck->ForceAllConfigurationChercks();
 	if (NoTableMapsInScraperFolder())
 	{
 		OH_MessageBox_Interactive(
@@ -92,9 +95,10 @@ void CProblemSolver::TryToDetectBeginnersProblems()
 			"    - You are not connected to a table.\n"
 			"\n"
 			" To connect to a table three conditions must be met:\n"
-			"    - You need a tablemap for that casino and game-type.\n"
-			"    - The tablesize must be right.\n"
-			"    - The titlestring must match.\n"
+			"    - You need a tablemap for this casino and game-type.\n"
+			"    - The table must match z$clientsizemin and z$clientsizemax.\n"
+      "         OpenScrape -> Menu -> View\n"
+			"    - The s$titletext must match.\n"
 			"If OpenHoldem does not connect, then you have to fix your tablemap.",
 			k_title_string, 0);
 	}
